@@ -1,0 +1,47 @@
+{
+  "name": "bibajilbab",
+  "version": "0.1.0",
+  "private": true,
+  "packageManager": "pnpm@11.19.0",
+  "engines": {
+    "node": ">=20.18.0"
+  },
+  "scripts": {
+    "dev": "pnpm --parallel --filter @bibajilbab/storefront --filter @bibajilbab/admin dev",
+    "dev:storefront": "pnpm --filter @bibajilbab/storefront dev",
+    "dev:admin": "pnpm --filter @bibajilbab/admin dev",
+    "dev:firebase": "pnpm dlx firebase-tools@latest emulators:start --only auth,firestore",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit -p packages/config/tsconfig.json && tsc --noEmit -p packages/types/tsconfig.json && tsc --noEmit -p packages/ui/tsconfig.json && tsc --noEmit -p apps/storefront/tsconfig.json && tsc --noEmit -p apps/admin/tsconfig.json",
+    "test": "vitest run",
+    "test:e2e": "playwright test",
+    "audit:deps": "pnpm audit --audit-level moderate",
+    "build:storefront": "pnpm --filter @bibajilbab/storefront build",
+    "build:admin": "pnpm --filter @bibajilbab/admin build",
+    "build": "pnpm build:storefront && pnpm build:admin",
+    "start": "pnpm --parallel --filter @bibajilbab/storefront --filter @bibajilbab/admin start",
+    "start:storefront": "pnpm --filter @bibajilbab/storefront start",
+    "start:admin": "pnpm --filter @bibajilbab/admin start",
+    "admin:create-first": "pnpm --filter @bibajilbab/admin create-first-admin"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.17.0",
+    "@next/eslint-plugin-next": "^16.0.0",
+    "@playwright/test": "^1.49.1",
+    "@types/node": "^22.10.2",
+    "@types/react": "^19.0.2",
+    "@types/react-dom": "^19.0.2",
+    "autoprefixer": "^10.4.20",
+    "eslint": "^9.17.0",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-react-hooks": "^5.1.0",
+    "postcss": "^8.4.49",
+    "prettier": "^3.4.2",
+    "tailwindcss": "^3.4.17",
+    "typescript": "^5.7.2",
+    "typescript-eslint": "^8.19.0",
+    "vitest": "^3.2.6"
+  }
+}

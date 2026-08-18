@@ -1,0 +1,26 @@
+# Informations attendues de la cliente
+
+- Logo final BibaJilbab.
+- Photos produits reelles.
+- Photos hero desktop et mobile.
+- Liste produits avec noms, slugs souhaites, SKU, prix, ancien prix si applicable.
+- Tailles disponibles par produit.
+- Couleurs disponibles par produit.
+- Stocks initiaux par variante.
+- Matieres et instructions d'entretien.
+- Categories finales.
+- Collections finales, dont Tabaski et Korite.
+- Conditions de livraison par zone.
+- Politique de retours et echanges.
+- Mentions legales relues.
+- Politique de confidentialite relue.
+- CGV relues.
+- Texte officiel du guide des tailles.
+- Avis clientes reels avec accord d'utilisation.
+- Adresse e-mail du premier administrateur.
+- Liste des comptes editeurs autorises.
+- Acces Firebase.
+- Acces Cloudinary.
+- Acces Vercel et DNS.
+- Decision sur Firebase App Check.
+- Decision sur monitoring/alerting.

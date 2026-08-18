@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="1200" viewBox="0 0 960 1200" role="img" aria-labelledby="title desc">
+  <title id="title">Collection Tabaski de demonstration</title>
+  <desc id="desc">Illustration minimaliste d'une collection Tabaski.</desc>
+  <rect width="960" height="1200" fill="#FFF5F8"/>
+  <rect x="96" y="120" width="768" height="960" rx="28" fill="#FFFFFF" stroke="#E8DDE5" stroke-width="4"/>
+  <path d="M480 214 620 326v168c0 148-58 288-140 398-82-110-140-250-140-398V326l140-112Z" fill="#E9B7C5" stroke="#5B2A6E" stroke-width="10" stroke-linejoin="round"/>
+  <path d="M396 462h168M414 548h132M434 634h92" stroke="#FFFFFF" stroke-width="18" stroke-linecap="round"/>
+  <text x="480" y="1044" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="42" font-weight="700" fill="#241B25">Tabaski demo</text>
+</svg>

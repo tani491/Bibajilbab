@@ -1,0 +1,17 @@
+node_modules
+.pnpm-store
+.next
+.next*
+dist
+coverage
+playwright-report
+test-results
+.env
+.env.local
+.env.*.local
+.vercel
+firebase-adminsdk*.json
+serviceAccount*.json
+*.service-account.json
+vercel-token*
+*.tsbuildinfo

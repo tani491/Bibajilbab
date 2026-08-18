@@ -1,0 +1,28 @@
+{
+  "name": "@bibajilbab/config",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./brand": "./src/brand.ts",
+    "./cors": "./src/cors.ts",
+    "./demo-data": "./src/demo-data/index.ts",
+    "./env": "./src/env.ts",
+    "./errors": "./src/errors.ts",
+    "./images": "./src/images.ts",
+    "./urls": "./src/urls.ts",
+    "./tailwind-preset": "./tailwind-preset.cjs"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint src"
+  },
+  "dependencies": {
+    "zod": "^3.24.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.2",
+    "typescript": "^5.7.2"
+  }
+}

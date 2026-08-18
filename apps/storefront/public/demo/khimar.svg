@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="1200" viewBox="0 0 960 1200" role="img" aria-labelledby="title desc">
+  <title id="title">Khimar de demonstration</title>
+  <desc id="desc">Illustration minimaliste d'un khimar.</desc>
+  <rect width="960" height="1200" fill="#FFFFFF"/>
+  <rect x="96" y="120" width="768" height="960" rx="28" fill="#FFF5F8" stroke="#E8DDE5" stroke-width="4"/>
+  <path d="M480 178c-128 0-232 110-232 246 0 76 32 148 86 192-54 96-88 208-110 356h512c-22-148-56-260-110-356 54-44 86-116 86-192 0-136-104-246-232-246Z" fill="#8C5A9E"/>
+  <path d="M348 572c68 54 196 54 264 0" fill="none" stroke="#FFF5F8" stroke-width="12" stroke-linecap="round"/>
+  <circle cx="480" cy="386" r="74" fill="#FFF5F8"/>
+  <text x="480" y="1044" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="42" font-weight="700" fill="#241B25">Khimar demo</text>
+</svg>

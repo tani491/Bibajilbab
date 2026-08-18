@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="1200" viewBox="0 0 960 1200" role="img" aria-labelledby="title desc">
+  <title id="title">Tunique de demonstration</title>
+  <desc id="desc">Illustration minimaliste d'une tunique.</desc>
+  <rect width="960" height="1200" fill="#FFF5F8"/>
+  <rect x="104" y="124" width="752" height="952" rx="28" fill="#FFFFFF" stroke="#E8DDE5" stroke-width="4"/>
+  <path d="M322 260 440 202h80l118 58 106 172-92 58-50-72v520H358V418l-50 72-92-58 106-172Z" fill="#FFFFFF" stroke="#5B2A6E" stroke-width="10" stroke-linejoin="round"/>
+  <path d="M392 532h176M392 612h176M392 692h176" stroke="#E9B7C5" stroke-width="18" stroke-linecap="round"/>
+  <text x="480" y="1044" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="42" font-weight="700" fill="#241B25">Tunique demo</text>
+</svg>
