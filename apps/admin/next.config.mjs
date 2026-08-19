@@ -1,11 +1,16 @@
-import { createSecurityHeaders } from "../../security-headers.mjs"
+import { createSecurityHeaders } from "../../security-headers.mjs";
 
-/** @type {import("next").NextConfig} */
+/** @type {import('next').NextConfig} */
 const nextConfig = {
+  serverExternalPackages: ["firebase-admin"],
   agentRules: false,
   distDir: process.env.NEXT_DIST_DIR ?? ".next",
   reactStrictMode: true,
-  transpilePackages: ["@bibajilbab/config", "@bibajilbab/types", "@bibajilbab/ui"],
+  transpilePackages: [
+    "@bibajilbab/config",
+    "@bibajilbab/types",
+    "@bibajilbab/ui",
+  ],
   images: {
     formats: ["image/avif", "image/webp"],
     remotePatterns: [
@@ -22,8 +27,8 @@ const nextConfig = {
         source: "/(.*)",
         headers: createSecurityHeaders({ admin: true }),
       },
-    ]
+    ];
   },
-}
+};
 
-export default nextConfig
+export default nextConfig;
