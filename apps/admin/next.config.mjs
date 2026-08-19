@@ -2,7 +2,7 @@ import { createSecurityHeaders } from "../../security-headers.mjs";
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  serverExternalPackages: ["firebase-admin"],
+  serverExternalPackages: ["firebase-admin", "jwks-rsa", "jose"],
   agentRules: false,
   distDir: process.env.NEXT_DIST_DIR ?? ".next",
   reactStrictMode: true,
