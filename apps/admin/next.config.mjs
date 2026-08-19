@@ -2,7 +2,14 @@ import { createSecurityHeaders } from "../../security-headers.mjs";
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  serverExternalPackages: ["firebase-admin", "jwks-rsa", "jose"],
+  serverExternalPackages: [
+    "firebase-admin",
+    "@google-cloud/firestore",
+    "@google-cloud/storage",
+    "jwks-rsa",
+    "jose",
+  ],
+  bundlePagesRouterDependencies: false,
   agentRules: false,
   distDir: process.env.NEXT_DIST_DIR ?? ".next",
   reactStrictMode: true,
