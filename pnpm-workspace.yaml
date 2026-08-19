@@ -3,7 +3,7 @@ packages:
   - "packages/*"
 overrides:
   uuid: "^11.1.1"
-  "jwks-rsa>jose": "4.15.9"
+  jose: "^4.15.9"
 allowBuilds:
   "@firebase/util": true
   esbuild: true
