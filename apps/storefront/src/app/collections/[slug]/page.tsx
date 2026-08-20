@@ -50,7 +50,14 @@ export default async function CollectionPage({ params, searchParams }: Collectio
 
   const filters = { ...parseCatalogFilters(await searchParams), collection: collection.slug }
   const products = await getStorefrontProducts({ status: "published" })
-  const filteredProducts = getFilteredProducts(products, filters)
+  const collectionProducts =
+    collection.slug === "nouveautes"
+      ? products
+      : products.filter((product) => product.collectionSlugs.includes(collection.slug))
+  const filteredProducts = getFilteredProducts(collectionProducts, {
+    ...filters,
+    collection: collection.slug === "nouveautes" ? "" : collection.slug,
+  })
   const sizeOptions = Array.from(
     new Map(products.flatMap((product) => product.sizes).map((item) => [item.id, { value: item.id, label: item.label }])).values(),
   )

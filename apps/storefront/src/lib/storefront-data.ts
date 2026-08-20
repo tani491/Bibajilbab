@@ -35,7 +35,12 @@ function mapImage(image: ProductImage): StoreProductImage {
 }
 
 function toStoreProduct(value: unknown): StoreProduct | null {
-  const parsed = productSchema.safeParse(value)
+  const source = value && typeof value === "object" ? value : null
+  const normalizedValue =
+    source && "status" in source && (source.status === "active" || source.status === "published")
+      ? { ...source, status: "published" }
+      : value
+  const parsed = productSchema.safeParse(normalizedValue)
 
   if (!parsed.success || parsed.data.status !== "published") {
     return null
@@ -61,7 +66,7 @@ function toStoreProduct(value: unknown): StoreProduct | null {
     status: product.status,
     material: product.material ?? "",
     careInstructions: product.careInstructions ?? "",
-    images: product.images.sort((left, right) => left.position - right.position).map(mapImage),
+    images: [...product.images].sort((left, right) => left.position - right.position).map(mapImage),
     sizes: product.sizes.map((size) => ({
       id: size.id,
       label: size.label,
@@ -102,12 +107,9 @@ function toIsoString(value: string | Date | { seconds: number; nanoseconds: numb
 
 export async function getStorefrontProducts({
   status = "published",
-}: { status?: "published" } = {}): Promise<StoreProduct[]> {
+}: { status?: "published" | "active" } = {}): Promise<StoreProduct[]> {
   try {
-    const snapshot = await getFirebaseAdminFirestore()
-      .collection("products")
-      .where("status", "==", status)
-      .get()
+    const snapshot = await getFirebaseAdminFirestore().collection("products").get()
     const products = snapshot.docs
       .map((document) => toStoreProduct({ id: document.id, ...document.data() }))
       .filter((product): product is StoreProduct => product !== null)
@@ -125,16 +127,10 @@ export async function getStorefrontProductBySlug(slug: string): Promise<StorePro
 
 export async function getStorefrontHero(): Promise<StorefrontHero | null> {
   try {
-    const document = await getFirebaseAdminFirestore()
-      .collection("homepageSections")
-      .doc("main-hero")
-      .get()
+    const db = getFirebaseAdminFirestore()
+    const document = await db.collection("homepageSections").doc("main-hero").get()
 
-    if (!document.exists) {
-      return null
-    }
-
-    const data = document.data() as {
+    const data = (document.exists ? document.data() : {}) as {
       eyebrow?: unknown
       title?: unknown
       body?: unknown
@@ -143,22 +139,66 @@ export async function getStorefrontHero(): Promise<StorefrontHero | null> {
       heroDesktopMedia?: { url?: unknown; alt?: unknown }
       heroMobileMedia?: { url?: unknown; alt?: unknown }
       heroVideoUrl?: unknown
+      mediaId?: unknown
       status?: unknown
     }
-    const media = data.heroDesktopMedia ?? data.heroMobileMedia
-    const videoUrl = typeof data.heroVideoUrl === "string" ? data.heroVideoUrl : undefined
+    const mediaId = typeof data.mediaId === "string" ? data.mediaId : undefined
+    const mediaDocument = mediaId ? await db.collection("media").doc(mediaId).get() : null
+    const referencedMedia = mediaDocument?.exists ? mediaDocument.data() : undefined
+    const settingsDocument = await db.collection("siteSettings").doc("default").get()
+    const settings = settingsDocument.exists ? settingsDocument.data() : undefined
+    const settingsMediaId =
+      typeof settings?.heroDesktopMediaId === "string"
+        ? settings.heroDesktopMediaId
+        : typeof settings?.heroMobileMediaId === "string"
+          ? settings.heroMobileMediaId
+          : undefined
+    const settingsMediaDocument = settingsMediaId
+      ? await db.collection("media").doc(settingsMediaId).get()
+      : null
+    const settingsMedia = settingsMediaDocument?.exists ? settingsMediaDocument.data() : undefined
+    const media =
+      data.heroDesktopMedia ??
+      data.heroMobileMedia ??
+      (referencedMedia as { url?: unknown; alt?: unknown } | undefined) ??
+      (settingsMedia as { url?: unknown; alt?: unknown } | undefined)
+    const videoUrl =
+      typeof data.heroVideoUrl === "string"
+        ? data.heroVideoUrl
+        : typeof referencedMedia?.kind === "string" && referencedMedia.kind === "video" && typeof referencedMedia.url === "string"
+          ? referencedMedia.url
+          : typeof settingsMedia?.kind === "string" && settingsMedia.kind === "video" && typeof settingsMedia.url === "string"
+            ? settingsMedia.url
+            : undefined
+    const status = data.status ?? referencedMedia?.status ?? settingsMedia?.status
 
-    if (data.status !== "published" || (typeof media?.url !== "string" && !videoUrl)) {
+    if (
+      (!document.exists && !mediaDocument?.exists && !settingsMediaDocument?.exists) ||
+      (status !== undefined && status !== "published" && status !== "active") ||
+      (typeof media?.url !== "string" && !videoUrl)
+    ) {
       return null
     }
 
     return {
-      eyebrow: typeof data.eyebrow === "string" ? data.eyebrow : "BibaJilbab Sénégal",
-      title: typeof data.title === "string" ? data.title : "L'élégance dans la pudeur",
+      eyebrow:
+        typeof data.eyebrow === "string"
+          ? data.eyebrow
+          : typeof settings?.heroEyebrow === "string"
+            ? settings.heroEyebrow
+            : "BibaJilbab Sénégal",
+      title:
+        typeof data.title === "string"
+          ? data.title
+          : typeof settings?.heroTitle === "string"
+            ? settings.heroTitle
+            : "L'élégance dans la pudeur",
       body:
         typeof data.body === "string"
           ? data.body
-          : "Découvrez nos djilbabs, khimars, tuniques et tenues de prière.",
+          : typeof settings?.heroDescription === "string"
+            ? settings.heroDescription
+            : "Découvrez nos djilbabs, khimars, tuniques et tenues de prière.",
       ctaLabel: typeof data.ctaLabel === "string" ? data.ctaLabel : "Découvrir la collection",
       ctaHref: typeof data.ctaHref === "string" ? data.ctaHref : "/catalogue",
       imageUrl: typeof media?.url === "string" ? media.url : "",

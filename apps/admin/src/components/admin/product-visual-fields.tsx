@@ -26,18 +26,6 @@ const defaultProductSize: ProductSize = {
   description: "Coupe unique",
 }
 
-const defaultColors: ProductColor[] = [
-  { id: "rose-poudre", name: "Rose poudré", hex: "#E9B7C5" },
-  { id: "violet-profond", name: "Violet profond", hex: "#5B2A6E" },
-  { id: "noir", name: "Noir", hex: "#111111" },
-]
-
-const defaultProductColor: ProductColor = {
-  id: "rose-poudre",
-  name: "Rose poudré",
-  hex: "#E9B7C5",
-}
-
 interface UploadResult {
   secureUrl: string
   publicId: string
@@ -176,7 +164,7 @@ export function ProductVisualFields({
   )
   const [customSize, setCustomSize] = useState("")
   const [colors, setColors] = useState<ProductColor[]>(
-    product?.colors?.length ? product.colors : [defaultProductColor],
+    product?.colors ?? [],
   )
   const [newColorName, setNewColorName] = useState("")
   const [newColorHex, setNewColorHex] = useState("#E9B7C5")
@@ -336,12 +324,6 @@ export function ProductVisualFields({
       current.some((size) => size.id === id) ? current : [...current, { id, label }],
     )
     setCustomSize("")
-  }
-
-  function addColor(color: ProductColor) {
-    setColors((current) =>
-      current.some((item) => item.id === color.id) ? current : [...current, color],
-    )
   }
 
   function addCustomColor() {
@@ -520,23 +502,6 @@ export function ProductVisualFields({
             <p className="mt-1 text-sm text-brand-muted">
               Ajoutez les teintes visibles par les clientes.
             </p>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            {defaultColors.map((color) => (
-              <button
-                key={color.id}
-                type="button"
-                onClick={() => addColor(color)}
-                className="flex min-h-10 items-center gap-2 rounded-card border border-brand-border bg-white px-3 text-sm font-medium text-brand-ink transition hover:border-brand-plum focus-visible:outline-none focus-visible:shadow-focus"
-              >
-                <span
-                  aria-hidden="true"
-                  className="h-5 w-5 rounded-full border border-brand-border"
-                  style={{ backgroundColor: color.hex }}
-                />
-                {color.name}
-              </button>
-            ))}
           </div>
           <div className="grid gap-3 md:grid-cols-[1fr_120px_auto]">
             <input
