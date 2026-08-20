@@ -38,16 +38,31 @@ export function ActionForm({
   children,
   submitLabel,
   danger = false,
+  compact = false,
+  confirmMessage,
+  submitIcon,
 }: {
   action: (previousState: ActionState, formData: FormData) => Promise<ActionState>
   children: ReactNode
   submitLabel: string
   danger?: boolean
+  compact?: boolean
+  confirmMessage?: string
+  submitIcon?: ReactNode
 }) {
   const [state, formAction, pending] = useActionState(action, initialState)
 
   return (
-    <form action={formAction} className="space-y-4" data-guard-unsaved="true">
+    <form
+      action={formAction}
+      className={compact ? "space-y-2" : "space-y-4"}
+      data-guard-unsaved="true"
+      onSubmit={(event) => {
+        if (confirmMessage && !window.confirm(confirmMessage)) {
+          event.preventDefault()
+        }
+      }}
+    >
       {children}
       {state.message ? (
         <div
@@ -65,8 +80,16 @@ export function ActionForm({
           ) : null}
         </div>
       ) : null}
-      <Button type="submit" isLoading={pending} variant={danger ? "danger" : "primary"}>
-        {submitLabel}
+      <Button
+        type="submit"
+        size={compact ? "sm" : "md"}
+        isLoading={pending}
+        variant={danger ? "danger" : "primary"}
+        leftIcon={submitIcon}
+        aria-label={submitIcon ? submitLabel : undefined}
+        className={submitIcon ? "px-2" : undefined}
+      >
+        <span className={submitIcon ? "sr-only" : undefined}>{submitLabel}</span>
       </Button>
     </form>
   )

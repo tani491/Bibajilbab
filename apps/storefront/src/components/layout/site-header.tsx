@@ -10,6 +10,7 @@ import { brandConfig } from "@bibajilbab/config"
 import { Drawer, IconButton, Input, buttonStyles, cn } from "@bibajilbab/ui"
 
 import { categories } from "@/lib/catalog"
+import { buildGeneralWhatsAppUrl } from "@/lib/whatsapp"
 
 import { useStorefrontState } from "../commerce/store-provider"
 
@@ -158,6 +159,15 @@ export function SiteHeader({ announcement }: { announcement: { text: string; hre
             ))}
           </div>
         </div>
+        <a
+          href={buildGeneralWhatsAppUrl()}
+          target="_blank"
+          rel="noreferrer"
+          className="mt-6 flex min-h-11 items-center justify-center rounded-card bg-[#25D366] px-4 text-sm font-semibold text-white transition hover:bg-[#1FB85A] focus-visible:outline-none focus-visible:shadow-focus"
+          onClick={() => setMenuOpen(false)}
+        >
+          Contacter le support WhatsApp
+        </a>
       </Drawer>
     </header>
   )

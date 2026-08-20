@@ -1,4 +1,5 @@
 import Link from "next/link"
+import { Eye, Pencil, Trash2 } from "lucide-react"
 
 import { Badge, Card, CardContent, EmptyState, buttonStyles } from "@bibajilbab/ui/server"
 
@@ -112,50 +113,52 @@ export default async function ProductsPage({
                     </td>
                     <td className="px-4 py-4 text-brand-muted">{product.stock}</td>
                     <td className="px-4 py-4 text-brand-muted">{product.price} XOF</td>
-                    <td className="space-y-3 px-4 py-4">
-                      <div className="flex flex-wrap gap-2">
+                    <td className="px-4 py-4">
+                      <div className="flex flex-wrap items-center gap-1.5">
                         <Link
                           href={`/products/${product.id}`}
-                          className={buttonStyles({ variant: "outline", size: "sm" })}
+                          className={buttonStyles({ variant: "outline", size: "sm", className: "h-8 px-2 text-xs" })}
+                          aria-label={`Modifier ${product.name}`}
                         >
-                          Modifier
+                          <Pencil aria-hidden="true" className="h-3.5 w-3.5" />
+                          <span className="sr-only">Modifier</span>
                         </Link>
                         <a
                           href={`/products/${product.id}?preview=1`}
-                          className={buttonStyles({ variant: "ghost", size: "sm" })}
+                          className={buttonStyles({ variant: "ghost", size: "sm", className: "h-8 px-2 text-xs" })}
+                          aria-label={`Prévisualiser ${product.name}`}
                         >
-                          Prévisualiser
+                          <Eye aria-hidden="true" className="h-3.5 w-3.5" />
+                          <span className="sr-only">Prévisualiser</span>
                         </a>
-                      </div>
-                      <div className="grid gap-2 md:grid-cols-2">
-                        <ActionForm action={updateProductStatusAction} submitLabel="Publier">
+                        <ActionForm action={updateProductStatusAction} submitLabel="Publier" compact>
                           <input type="hidden" name="id" value={product.id} />
                           <input type="hidden" name="status" value="published" />
                         </ActionForm>
-                        <ActionForm action={updateProductStatusAction} submitLabel="Dépublier">
+                        <ActionForm action={updateProductStatusAction} submitLabel="Dépublier" compact>
                           <input type="hidden" name="id" value={product.id} />
                           <input type="hidden" name="status" value="draft" />
                         </ActionForm>
-                        <ActionForm action={duplicateProductAction} submitLabel="Dupliquer">
+                        <ActionForm action={duplicateProductAction} submitLabel="Dupliquer" compact>
                           <input type="hidden" name="id" value={product.id} />
                         </ActionForm>
-                        <ActionForm action={updateProductStatusAction} submitLabel="Archiver">
+                        <ActionForm action={updateProductStatusAction} submitLabel="Archiver" compact>
                           <input type="hidden" name="id" value={product.id} />
                           <input type="hidden" name="status" value="archived" />
                         </ActionForm>
+                        {session.role === "admin" ? (
+                          <ActionForm
+                            action={deleteProductAction}
+                            submitLabel={`Supprimer ${product.name}`}
+                            danger
+                            compact
+                            confirmMessage={`Confirmer la suppression de « ${product.name} » ?`}
+                            submitIcon={<Trash2 aria-hidden="true" className="h-4 w-4" />}
+                          >
+                            <input type="hidden" name="id" value={product.id} />
+                          </ActionForm>
+                        ) : null}
                       </div>
-                      {session.role === "admin" ? (
-                        <ActionForm action={deleteProductAction} submitLabel="Supprimer" danger>
-                          <input type="hidden" name="id" value={product.id} />
-                          <label className="block text-xs text-brand-muted">
-                            Confirmer avec l'ID
-                            <input
-                              name="confirm"
-                              className="mt-1 h-9 w-full rounded-card border border-brand-border px-2"
-                            />
-                          </label>
-                        </ActionForm>
-                      ) : null}
                     </td>
                   </tr>
                 ))}

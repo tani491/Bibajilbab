@@ -307,10 +307,9 @@ export async function deleteProductAction(
 ): Promise<ActionState> {
   const session = await requireActionSession(["admin"])
   const id = String(formData.get("id") ?? "")
-  const confirm = String(formData.get("confirm") ?? "")
 
-  if (!id || confirm !== id) {
-    return fail("Confirmez la suppression avec l'identifiant exact.")
+  if (!id) {
+    return fail("Produit introuvable.")
   }
 
   try {
@@ -325,6 +324,9 @@ export async function deleteProductAction(
       documentId: id,
     })
     revalidatePath("/products")
+    revalidatePath("/")
+    revalidatePath("/produits")
+    revalidatePath("/produits/[slug]", "page")
 
     return ok("Produit supprimé.")
   } catch (error) {
