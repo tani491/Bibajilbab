@@ -33,8 +33,8 @@ function mapImage(image: {
   return {
     src: image.url,
     alt: image.alt,
-    width: image.width ?? 1200,
-    height: image.height ?? 1500,
+    width: typeof image.width === "number" ? image.width : 1200,
+    height: typeof image.height === "number" ? image.height : 1500,
   }
 }
 
@@ -66,7 +66,11 @@ function toStoreProduct(value: unknown): StoreProduct | null {
     material: product.material ?? "",
     careInstructions: product.careInstructions ?? "",
     images: product.images.sort((left, right) => left.position - right.position).map(mapImage),
-    sizes: product.sizes,
+    sizes: product.sizes.map((size) => ({
+      id: size.id,
+      label: size.label,
+      ...(size.description ? { description: size.description } : {}),
+    })),
     colors: product.colors.map((color) => ({
       id: color.id,
       name: color.name,
@@ -75,8 +79,8 @@ function toStoreProduct(value: unknown): StoreProduct | null {
     variants: product.variants.map((variant) => ({
       id: variant.id,
       sku: variant.sku,
-      sizeId: variant.sizeId,
-      colorId: variant.colorId,
+      ...(variant.sizeId ? { sizeId: variant.sizeId } : {}),
+      ...(variant.colorId ? { colorId: variant.colorId } : {}),
       stock: variant.stock,
     })),
     createdAt: toIsoString(product.createdAt),
@@ -163,7 +167,7 @@ export async function getStorefrontHero(): Promise<StorefrontHero | null> {
       ctaHref: typeof data.ctaHref === "string" ? data.ctaHref : "/catalogue",
       imageUrl: typeof media?.url === "string" ? media.url : "",
       imageAlt: typeof media?.alt === "string" ? media.alt : "Collection BibaJilbab",
-      videoUrl,
+      ...(videoUrl ? { videoUrl } : {}),
     }
   } catch {
     return null
