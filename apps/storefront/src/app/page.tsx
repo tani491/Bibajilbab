@@ -42,6 +42,7 @@ export default async function StorefrontHomePage() {
   const publicEnv = parsePublicEnv(process.env)
   const products = await getStorefrontProducts({ status: "published" })
   const hero = await getStorefrontHero()
+  const fallbackImage = products[0]?.images[0]
   const featuredProducts = products.filter((product) => product.featured).slice(0, 4)
   const previewPopularProducts = [...products]
     .sort((a, b) => a.previewRank - b.previewRank)
@@ -63,10 +64,10 @@ export default async function StorefrontHomePage() {
               className="h-full w-full object-cover object-[62%_center]"
               src={hero.videoUrl}
             />
-          ) : hero?.imageUrl ? (
+          ) : hero?.imageUrl || fallbackImage ? (
             <Image
-              src={hero.imageUrl}
-              alt={hero.imageAlt}
+              src={hero?.imageUrl || fallbackImage?.src || ""}
+              alt={hero?.imageAlt || fallbackImage?.alt || "Collection BibaJilbab"}
               fill
               priority
               sizes="100vw"

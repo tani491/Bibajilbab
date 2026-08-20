@@ -82,12 +82,12 @@ export function Drawer({
         aria-labelledby={titleId}
         aria-describedby={description ? descriptionId : undefined}
         className={cn(
-          "fixed top-0 flex h-full w-full max-w-md flex-col border-brand-border bg-white shadow-soft animate-slide-up sm:border-l",
+          "fixed inset-y-0 flex h-[100dvh] max-h-[100dvh] w-full max-w-md flex-col overflow-hidden border-brand-border bg-white shadow-soft animate-slide-up sm:border-l",
           sideClasses[side],
           className,
         )}
       >
-        <header className="flex items-start justify-between gap-4 border-b border-brand-border p-5">
+        <header className="flex shrink-0 items-start justify-between gap-4 border-b border-brand-border bg-white p-5">
           <div>
             <h2 id={titleId} className="text-lg font-semibold text-brand-ink">
               {title}
@@ -105,7 +105,7 @@ export function Drawer({
             size="sm"
           />
         </header>
-        <div className="flex-1 overflow-y-auto p-5">{children}</div>
+        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-5">{children}</div>
         {footer ? <footer className="border-t border-brand-border p-5">{footer}</footer> : null}
       </aside>
     </div>

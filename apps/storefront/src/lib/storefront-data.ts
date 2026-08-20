@@ -1,9 +1,9 @@
 import "server-only"
 
-import { productSchema } from "@bibajilbab/types"
+import { productImageSchema, productSchema } from "@bibajilbab/types"
 import type { ProductImage } from "@bibajilbab/types"
 
-import { getFirebaseAdminFirestore } from "./firebase/admin"
+import { getFirebaseAdminFirestore, getFirebaseAdminStatus } from "./firebase/admin"
 import {
   type StoreProduct,
   type StoreProductImage,
@@ -34,15 +34,91 @@ function mapImage(image: ProductImage): StoreProductImage {
   }
 }
 
+function normalizeImageCandidate(value: unknown, fallbackAlt: string, position: number): unknown {
+  if (typeof value === "string") {
+    return { url: value, alt: fallbackAlt, position }
+  }
+
+  if (!value || typeof value !== "object") {
+    return null
+  }
+
+  const image = value as Record<string, unknown>
+  const url =
+    typeof image.url === "string"
+      ? image.url
+      : typeof image.secure_url === "string"
+        ? image.secure_url
+        : typeof image.src === "string"
+          ? image.src
+          : undefined
+
+  return url
+    ? {
+        ...image,
+        url,
+        alt: typeof image.alt === "string" && image.alt.trim() ? image.alt : fallbackAlt,
+        position: typeof image.position === "number" ? image.position : position,
+      }
+    : null
+}
+
 function toStoreProduct(value: unknown): StoreProduct | null {
   const source = value && typeof value === "object" ? value : null
   const normalizedValue =
     source && "status" in source && (source.status === "active" || source.status === "published")
       ? { ...source, status: "published" }
       : value
-  const parsed = productSchema.safeParse(normalizedValue)
+  const candidate = normalizedValue && typeof normalizedValue === "object"
+    ? (() => {
+        const productRecord = normalizedValue as Record<string, unknown>
+        const name = typeof productRecord.name === "string" ? productRecord.name : "Produit BibaJilbab"
+        const rawImages = Array.isArray(productRecord.images)
+          ? productRecord.images
+          : [productRecord.coverImage, productRecord.imageUrl].filter(Boolean)
+        const images = rawImages
+          .map((image, position) => normalizeImageCandidate(image, name, position))
+          .filter((image): image is Record<string, unknown> => Boolean(image))
+          .filter((image) => productImageSchema.safeParse(image).success)
 
-  if (!parsed.success || parsed.data.status !== "published") {
+        return {
+        ...normalizedValue,
+        collectionIds: Array.isArray(normalizedValue.collectionIds)
+          ? normalizedValue.collectionIds
+          : Array.isArray(normalizedValue.collectionSlugs)
+            ? normalizedValue.collectionSlugs
+            : [],
+        tags: Array.isArray(normalizedValue.tags) ? normalizedValue.tags : [],
+        images,
+        sizes: Array.isArray(normalizedValue.sizes) ? normalizedValue.sizes : [],
+        colors: Array.isArray(normalizedValue.colors) ? normalizedValue.colors : [],
+        variants: Array.isArray(normalizedValue.variants) ? normalizedValue.variants : [],
+        currency: normalizedValue.currency ?? "XOF",
+        featured: normalizedValue.featured ?? false,
+        seo: normalizedValue.seo ?? {
+          metaTitle: name,
+          metaDescription: typeof productRecord.shortDescription === "string" ? productRecord.shortDescription : "Collection BibaJilbab",
+          noIndex: false,
+        },
+        createdAt: normalizedValue.createdAt ?? new Date(0).toISOString(),
+        updatedAt: normalizedValue.updatedAt ?? normalizedValue.createdAt ?? new Date(0).toISOString(),
+        }
+      })()
+    : normalizedValue
+  const parsed = productSchema.safeParse(candidate)
+
+  if (!parsed.success) {
+    if (source && "id" in source) {
+      console.error("[storefront] Produit Firestore invalide", {
+        id: source.id,
+        issues: parsed.error.issues.map((issue) => issue.path.join(".") || "root"),
+      })
+    }
+
+    return null
+  }
+
+  if (parsed.data.status !== "published") {
     return null
   }
 
@@ -111,11 +187,24 @@ export async function getStorefrontProducts({
   try {
     const snapshot = await getFirebaseAdminFirestore().collection("products").get()
     const products = snapshot.docs
-      .map((document) => toStoreProduct({ id: document.id, ...document.data() }))
+      .map((document) => {
+        const value = { id: document.id, ...document.data() }
+        const product = toStoreProduct(value)
+
+        if (!product) {
+          console.error(`[storefront] Produit Firestore ignore: ${document.id}`)
+        }
+
+        return product
+      })
       .filter((product): product is StoreProduct => product !== null)
 
     return products
-  } catch {
+  } catch (error) {
+    console.error("[storefront] Lecture Firestore products impossible", {
+      error,
+      firebase: getFirebaseAdminStatus(),
+    })
     return []
   }
 }
