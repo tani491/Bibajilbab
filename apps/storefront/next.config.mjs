@@ -1,4 +1,11 @@
+import { loadEnvConfig } from "@next/env"
+import { dirname, resolve } from "node:path"
+import { fileURLToPath } from "node:url"
+
 import { createSecurityHeaders } from "../../security-headers.mjs"
+
+const workspaceRoot = resolve(dirname(fileURLToPath(import.meta.url)), "../..")
+loadEnvConfig(workspaceRoot, process.env.NODE_ENV !== "production")
 
 /** @type {import("next").NextConfig} */
 const nextConfig = {

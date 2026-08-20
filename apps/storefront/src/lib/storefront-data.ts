@@ -185,13 +185,16 @@ export async function getStorefrontProducts({
   status = "published",
 }: { status?: "published" | "active" } = {}): Promise<StoreProduct[]> {
   try {
+    const firebaseStatus = getFirebaseAdminStatus()
+    console.log("[Storefront] Firebase source:", firebaseStatus)
     const snapshot = await getFirebaseAdminFirestore().collection("products").get()
+    console.log("[Storefront] Raw Firestore docs found:", snapshot.docs.length)
     const products = snapshot.docs
       .map((document) => {
         const value = { id: document.id, ...document.data() }
         const product = toStoreProduct(value)
 
-        if (!product) {
+        if (!product || (status === "active" && product.status !== "published")) {
           console.error(`[storefront] Produit Firestore ignore: ${document.id}`)
         }
 
@@ -199,6 +202,7 @@ export async function getStorefrontProducts({
       })
       .filter((product): product is StoreProduct => product !== null)
 
+    console.log("[Storefront] Published products accepted:", products.length)
     return products
   } catch (error) {
     console.error("[storefront] Lecture Firestore products impossible", {
