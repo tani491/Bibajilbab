@@ -214,7 +214,7 @@ export const products: StoreProduct[] = [
     careInstructions: "Lavage doux recommandé. Repassage léger sur l'envers.",
     images: [
       {
-        src: "/demo/djilbab.svg",
+        src: "",
         alt: "Aperçu illustré du djilbab premium poudre",
         width: 960,
         height: 1200,
@@ -251,7 +251,7 @@ export const products: StoreProduct[] = [
     careInstructions: "Lavage à froid conseillé. Séchage à l'air libre.",
     images: [
       {
-        src: "/demo/khimar.svg",
+        src: "",
         alt: "Aperçu illustré du khimar Médine prune",
         width: 960,
         height: 1200,
@@ -287,7 +287,7 @@ export const products: StoreProduct[] = [
     careInstructions: "Lavage doux avec couleurs similaires.",
     images: [
       {
-        src: "/demo/tunique.svg",
+        src: "",
         alt: "Aperçu illustré d'une tunique blanche",
         width: 960,
         height: 1200,
@@ -323,7 +323,7 @@ export const products: StoreProduct[] = [
     careInstructions: "Lavage doux recommandé, séchage naturel.",
     images: [
       {
-        src: "/demo/priere.svg",
+        src: "",
         alt: "Aperçu illustré d'une tenue de prière rose",
         width: 960,
         height: 1200,
@@ -360,7 +360,7 @@ export const products: StoreProduct[] = [
     careInstructions: "Entretien délicat conseillé.",
     images: [
       {
-        src: "/demo/tabaski.svg",
+        src: "",
         alt: "Aperçu illustré d'un ensemble Tabaski",
         width: 960,
         height: 1200,
@@ -397,7 +397,7 @@ export const products: StoreProduct[] = [
     careInstructions: "Lavage délicat. Éviter le séchage direct au soleil.",
     images: [
       {
-        src: "/demo/korite.svg",
+        src: "",
         alt: "Aperçu illustré d'un ensemble Korité mauve",
         width: 960,
         height: 1200,
@@ -458,7 +458,7 @@ export const legalModelNotice =
   "Ce contenu est un modèle de départ à faire relire et valider par un professionnel compétent. Il ne constitue pas un conseil juridique définitif."
 
 export function getPublishedProducts(): StoreProduct[] {
-  return products.filter((product) => product.status === "published")
+  return []
 }
 
 export function getProductBySlug(slug: string): StoreProduct | undefined {

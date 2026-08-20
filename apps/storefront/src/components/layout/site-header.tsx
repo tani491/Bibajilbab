@@ -17,10 +17,11 @@ import { useStorefrontState } from "../commerce/store-provider"
 const navItems = [
   { href: "/", label: "Accueil" },
   { href: "/collections/nouveautes", label: "Nouveautés" },
+  { href: "/catalogue", label: "Catalogue" },
   { href: "/categories/djilbabs", label: "Djilbabs" },
   { href: "/categories/khimars", label: "Khimars" },
   { href: "/categories/tuniques", label: "Tuniques" },
-  { href: "/categories/priere", label: "Prière" },
+  { href: "/categories/priere", label: "Tenues de prière" },
   { href: "/collections/tabaski", label: "Tabaski" },
   { href: "/collections/korite", label: "Korité" },
   { href: "/a-propos", label: "À propos" },
