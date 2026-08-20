@@ -10,6 +10,22 @@ import {
   type StoreProductImage,
 } from "./catalog"
 
+export interface StorefrontHero {
+  eyebrow: string
+  title: string
+  body: string
+  ctaLabel: string
+  ctaHref: string
+  imageUrl: string
+  imageAlt: string
+  videoUrl?: string
+}
+
+export interface StorefrontAnnouncement {
+  text: string
+  href: string
+}
+
 function mapImage(image: {
   url: string
   alt: string
@@ -102,4 +118,68 @@ export async function getStorefrontProducts(): Promise<StoreProduct[]> {
 export async function getStorefrontProductBySlug(slug: string): Promise<StoreProduct | undefined> {
   const products = await getStorefrontProducts()
   return products.find((product) => product.slug === slug)
+}
+
+export async function getStorefrontHero(): Promise<StorefrontHero | null> {
+  try {
+    const document = await getFirebaseAdminFirestore()
+      .collection("homepageSections")
+      .doc("main-hero")
+      .get()
+
+    if (!document.exists) {
+      return null
+    }
+
+    const data = document.data() as {
+      eyebrow?: unknown
+      title?: unknown
+      body?: unknown
+      ctaLabel?: unknown
+      ctaHref?: unknown
+      heroDesktopMedia?: { url?: unknown; alt?: unknown }
+      heroMobileMedia?: { url?: unknown; alt?: unknown }
+      heroVideoUrl?: unknown
+      status?: unknown
+    }
+    const media = data.heroDesktopMedia ?? data.heroMobileMedia
+
+    if (data.status !== "published" || typeof media?.url !== "string") {
+      return null
+    }
+
+    return {
+      eyebrow: typeof data.eyebrow === "string" ? data.eyebrow : "BibaJilbab Sénégal",
+      title: typeof data.title === "string" ? data.title : "L'élégance dans la pudeur",
+      body:
+        typeof data.body === "string"
+          ? data.body
+          : "Découvrez nos djilbabs, khimars, tuniques et tenues de prière.",
+      ctaLabel: typeof data.ctaLabel === "string" ? data.ctaLabel : "Découvrir la collection",
+      ctaHref: typeof data.ctaHref === "string" ? data.ctaHref : "/catalogue",
+      imageUrl: media.url,
+      imageAlt: typeof media.alt === "string" ? media.alt : "Collection BibaJilbab",
+      videoUrl: typeof data.heroVideoUrl === "string" ? data.heroVideoUrl : undefined,
+    }
+  } catch {
+    return null
+  }
+}
+
+export async function getStorefrontAnnouncement(): Promise<StorefrontAnnouncement | null> {
+  try {
+    const document = await getFirebaseAdminFirestore()
+      .collection("siteSettings")
+      .doc("default")
+      .get()
+    const announcement = document.data()?.announcement
+
+    if (!document.exists || typeof announcement !== "string" || !announcement.trim()) {
+      return null
+    }
+
+    return { text: announcement.trim(), href: "/catalogue" }
+  } catch {
+    return null
+  }
 }

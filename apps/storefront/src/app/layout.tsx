@@ -10,6 +10,8 @@ import { StoreProvider } from "@/components/commerce/store-provider"
 import { FloatingWhatsApp } from "@/components/layout/floating-whatsapp"
 import { SiteFooter } from "@/components/layout/site-footer"
 import { SiteHeader } from "@/components/layout/site-header"
+import { getStorefrontAnnouncement } from "@/lib/storefront-data"
+import { announcement as defaultAnnouncement } from "@/lib/catalog"
 
 import "./globals.css"
 
@@ -33,14 +35,18 @@ export const viewport: Viewport = {
   themeColor: "#FFF5F8",
 }
 
-export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+export const dynamic = "force-dynamic"
+
+export default async function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+  const announcement = (await getStorefrontAnnouncement()) ?? defaultAnnouncement
+
   return (
     <html lang="fr">
       <body>
         <OrganizationStructuredData siteUrl={publicEnv.urls.site} />
         <WebsiteStructuredData siteUrl={publicEnv.urls.site} />
         <StoreProvider>
-          <SiteHeader />
+          <SiteHeader announcement={announcement} />
           {children}
           <SiteFooter />
           <FloatingWhatsApp />

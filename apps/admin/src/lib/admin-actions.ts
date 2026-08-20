@@ -545,6 +545,8 @@ export async function saveMediaAction(
       documentId,
     })
     revalidatePath("/media")
+    revalidatePath("/")
+    revalidatePath("/produits")
 
     return ok("Média enregistré.")
   } catch (error) {
@@ -631,6 +633,8 @@ export async function saveContentAction(
     })
     revalidatePath("/content")
     revalidatePath("/settings")
+    revalidatePath("/")
+    revalidatePath("/produits")
 
     return ok("Contenu enregistré.")
   } catch (error) {

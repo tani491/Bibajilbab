@@ -91,10 +91,16 @@ export const productSchema = z
     createdAt: timestampLikeSchema,
     updatedAt: timestampLikeSchema,
   })
-  .refine((product) => product.oldPrice === undefined || product.oldPrice > product.price, {
+  .refine(
+    (product) =>
+      product.oldPrice === undefined ||
+      product.oldPrice <= 0 ||
+      product.oldPrice > product.price,
+    {
     message: "L'ancien prix doit etre superieur au prix actuel.",
     path: ["oldPrice"],
-  })
+    },
+  )
 
 export const categorySchema = z.object({
   id: documentIdSchema.optional(),

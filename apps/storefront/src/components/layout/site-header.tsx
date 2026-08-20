@@ -9,7 +9,7 @@ import type { FormEvent } from "react"
 import { brandConfig } from "@bibajilbab/config"
 import { Drawer, IconButton, Input, buttonStyles, cn } from "@bibajilbab/ui"
 
-import { announcement, categories } from "@/lib/catalog"
+import { categories } from "@/lib/catalog"
 
 import { useStorefrontState } from "../commerce/store-provider"
 
@@ -38,7 +38,7 @@ function Counter({ value }: { value: number }) {
   )
 }
 
-export function SiteHeader() {
+export function SiteHeader({ announcement }: { announcement: { text: string; href: string } }) {
   const router = useRouter()
   const [menuOpen, setMenuOpen] = useState(false)
   const [query, setQuery] = useState("")

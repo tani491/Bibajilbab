@@ -15,7 +15,7 @@ import {
 import { ProductGrid } from "@/components/commerce/product-grid"
 import { WhatsAppIcon } from "@/components/layout/whatsapp-icon"
 import { categories, collections, testimonials } from "@/lib/catalog"
-import { getStorefrontProducts } from "@/lib/storefront-data"
+import { getStorefrontHero, getStorefrontProducts } from "@/lib/storefront-data"
 import { buildGeneralWhatsAppUrl } from "@/lib/whatsapp"
 
 const trustItems = [
@@ -41,6 +41,7 @@ export const dynamic = "force-dynamic"
 export default async function StorefrontHomePage() {
   const publicEnv = parsePublicEnv(process.env)
   const products = await getStorefrontProducts()
+  const hero = await getStorefrontHero()
   const featuredProducts = products.filter((product) => product.featured).slice(0, 4)
   const previewPopularProducts = [...products]
     .sort((a, b) => a.previewRank - b.previewRank)
@@ -54,8 +55,8 @@ export default async function StorefrontHomePage() {
       <section className="relative isolate overflow-hidden bg-brand-blush lg:min-h-[680px]">
         <div className="relative h-[200px] overflow-hidden sm:h-[320px] lg:absolute lg:inset-0 lg:h-auto">
           <Image
-            src="/images/hero-modest-fashion.png"
-            alt="Visuel éditorial d'une tenue pudique rose poudré dans une boutique lumineuse"
+            src={hero?.imageUrl ?? "/images/hero-modest-fashion.png"}
+            alt={hero?.imageAlt ?? "Visuel éditorial d'une tenue pudique rose poudré"}
             fill
             priority
             sizes="100vw"
@@ -66,19 +67,19 @@ export default async function StorefrontHomePage() {
         <Container className="relative z-10 bg-white py-6 lg:flex lg:min-h-[680px] lg:items-center lg:bg-transparent lg:py-16">
           <div className="max-w-xl">
             <Badge variant="outline" className="bg-white/90">
-              BibaJilbab Sénégal
+              {hero?.eyebrow ?? "BibaJilbab Sénégal"}
             </Badge>
             <h1 className="mt-5 text-3xl font-semibold leading-tight text-brand-ink sm:text-5xl lg:text-6xl">
-              L'élégance dans la pudeur
+              {hero?.title ?? "L'élégance dans la pudeur"}
             </h1>
             <p className="mt-5 max-w-lg text-sm leading-7 text-brand-muted sm:text-lg sm:leading-8">
-              Découvrez nos djilbabs, khimars, tuniques et tenues de prière conçus pour accompagner
-              votre quotidien et vos célébrations.
+              {hero?.body ??
+                "Découvrez nos djilbabs, khimars, tuniques et tenues de prière conçus pour accompagner votre quotidien et vos célébrations."}
             </p>
             <div className="mt-6 flex flex-col gap-3 sm:flex-row lg:mt-8">
-              <Link className={buttonStyles({ size: "lg" })} href="/catalogue">
+              <Link className={buttonStyles({ size: "lg" })} href={hero?.ctaHref ?? "/catalogue"}>
                 <ShoppingBag aria-hidden="true" className="h-5 w-5" />
-                Découvrir la collection
+                {hero?.ctaLabel ?? "Découvrir la collection"}
               </Link>
               <a
                 className={buttonStyles({

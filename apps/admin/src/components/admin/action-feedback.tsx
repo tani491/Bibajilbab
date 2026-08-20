@@ -9,6 +9,30 @@ import type { ActionState } from "@/lib/admin-actions"
 
 const initialState: ActionState = { ok: false, message: "" }
 
+function readableActionMessage(message: string): string {
+  try {
+    const parsed: unknown = JSON.parse(message)
+
+    if (Array.isArray(parsed)) {
+      const firstMessage = parsed.find(
+        (item): item is { message: string } =>
+          typeof item === "object" &&
+          item !== null &&
+          "message" in item &&
+          typeof item.message === "string",
+      )
+
+      if (firstMessage) {
+        return firstMessage.message
+      }
+    }
+  } catch {
+    // Keep the original message when it is already human-readable.
+  }
+
+  return message
+}
+
 export function ActionForm({
   action,
   children,
@@ -33,7 +57,7 @@ export function ActionForm({
               : "rounded-card border border-red-200 bg-red-50 p-3 text-sm text-red-900"
           }
         >
-          <p>{state.message}</p>
+          <p>{readableActionMessage(state.message)}</p>
           {state.resetLink ? (
             <p className="mt-2 break-all text-xs">
               Lien temporaire sécurisé : <span>{state.resetLink}</span>

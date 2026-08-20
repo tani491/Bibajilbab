@@ -50,7 +50,11 @@ const optionalCsvListSchema = z
 const optionalMoneyStringSchema = z
   .string()
   .trim()
-  .transform((value) => (value ? Number.parseInt(value, 10) : undefined))
+  .transform((value) => {
+    const amount = value ? Number.parseInt(value, 10) : 0
+
+    return amount > 0 ? amount : undefined
+  })
   .pipe(z.number().int().nonnegative().optional())
 
 const moneyStringSchema = z
