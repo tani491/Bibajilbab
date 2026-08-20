@@ -23,6 +23,20 @@ body {
   font-family: var(--font-sans);
 }
 
+@keyframes marquee {
+  from {
+    transform: translateX(0);
+  }
+
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-marquee {
+  animation: marquee 24s linear infinite;
+}
+
 ::selection {
   background: #e9b7c5;
   color: #241b25;
@@ -44,5 +58,9 @@ img {
     transition-duration: 0.01ms !important;
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
+  }
+
+  .animate-marquee {
+    animation: none;
   }
 }

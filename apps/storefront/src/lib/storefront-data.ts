@@ -23,6 +23,7 @@ export interface StorefrontHero {
 export interface StorefrontAnnouncement {
   text: string
   href: string
+  logoUrl?: string
 }
 
 function mapImage(image: ProductImage): StoreProductImage {
@@ -309,17 +310,29 @@ export async function getStorefrontHero(): Promise<StorefrontHero | null> {
 
 export async function getStorefrontAnnouncement(): Promise<StorefrontAnnouncement | null> {
   try {
-    const document = await getFirebaseAdminFirestore()
-      .collection("siteSettings")
-      .doc("default")
-      .get()
-    const announcement = document.data()?.announcement
+    const db = getFirebaseAdminFirestore()
+    const document = await db.collection("siteSettings").doc("default").get()
+    const generalDocument = await db.collection("settings").doc("general").get()
+    const settings = generalDocument.exists ? generalDocument.data() : document.data()
+    const announcement = settings?.announcement
+    const logoUrl = settings?.logoUrl
 
-    if (!document.exists || typeof announcement !== "string" || !announcement.trim()) {
+    if (
+      (!document.exists && !generalDocument.exists) ||
+      (typeof announcement !== "string" || !announcement.trim()) &&
+        (typeof logoUrl !== "string" || !logoUrl.trim())
+    ) {
       return null
     }
 
-    return { text: announcement.trim(), href: "/catalogue" }
+    return {
+      text:
+        typeof announcement === "string" && announcement.trim()
+          ? announcement.trim()
+          : "Bienvenue chez BibaJilbab",
+      href: "/catalogue",
+      ...(typeof logoUrl === "string" && logoUrl.trim() ? { logoUrl: logoUrl.trim() } : {}),
+    }
   } catch {
     return null
   }

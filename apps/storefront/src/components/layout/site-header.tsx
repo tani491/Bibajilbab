@@ -1,6 +1,7 @@
 "use client"
 
 import { Heart, Menu, Search, ShoppingBag } from "lucide-react"
+import Image from "next/image"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
@@ -40,7 +41,11 @@ function Counter({ value }: { value: number }) {
   )
 }
 
-export function SiteHeader({ announcement }: { announcement: { text: string; href: string } }) {
+export function SiteHeader({
+  announcement,
+}: {
+  announcement: { text: string; href: string; logoUrl?: string }
+}) {
   const router = useRouter()
   const [menuOpen, setMenuOpen] = useState(false)
   const [query, setQuery] = useState("")
@@ -57,13 +62,28 @@ export function SiteHeader({ announcement }: { announcement: { text: string; hre
     <header className="sticky top-0 z-40 border-b border-brand-border bg-white/95 backdrop-blur">
       <a
         href={announcement.href}
-        className="block bg-brand-blush px-4 py-2 text-center text-xs font-medium text-brand-ink transition hover:text-brand-plum focus-visible:outline-none focus-visible:shadow-focus"
+        className="block overflow-hidden bg-brand-blush py-2 text-xs font-medium text-brand-ink transition hover:text-brand-plum focus-visible:outline-none focus-visible:shadow-focus"
+        aria-label={announcement.text}
       >
-        {announcement.text}
+        <span className="flex min-w-max animate-marquee gap-12 px-4">
+          <span>{announcement.text}</span>
+          <span aria-hidden="true">{announcement.text}</span>
+        </span>
       </a>
       <div className="mx-auto flex min-h-16 max-w-7xl items-center gap-4 px-4 py-3 sm:px-6 lg:px-8">
         <Link href="/" className="shrink-0 focus-visible:outline-none focus-visible:shadow-focus">
-          <span className="block text-lg font-semibold text-brand-ink">{brandConfig.name}</span>
+          <span className="flex items-center gap-2">
+            {announcement.logoUrl ? (
+              <Image
+                src={announcement.logoUrl}
+                alt=""
+                width={36}
+                height={36}
+                className="h-9 w-9 rounded object-contain"
+              />
+            ) : null}
+            <span className="block text-lg font-semibold text-brand-ink">{brandConfig.name}</span>
+          </span>
           <span className="block text-xs text-brand-muted">Catalogue modest fashion</span>
         </Link>
 

@@ -20,12 +20,6 @@ const standardSizes: ProductSize[] = [
   { id: "58", label: "58" },
 ]
 
-const defaultProductSize: ProductSize = {
-  id: "taille-unique",
-  label: "Taille Unique",
-  description: "Coupe unique",
-}
-
 interface UploadResult {
   secureUrl: string
   publicId: string
@@ -160,7 +154,7 @@ export function ProductVisualFields({
     })),
   )
   const [sizes, setSizes] = useState<ProductSize[]>(
-    product?.sizes?.length ? product.sizes : [defaultProductSize],
+    product?.sizes ?? [],
   )
   const [customSize, setCustomSize] = useState("")
   const [colors, setColors] = useState<ProductColor[]>(

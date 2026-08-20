@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache"
 import { FieldValue } from "firebase-admin/firestore"
 
 import { FirebaseUnavailableError } from "@bibajilbab/config"
+import { productImageSchema } from "@bibajilbab/types"
 
 import { getFirebaseAdminAuth, getFirebaseAdminFirestore } from "@/lib/firebase/admin"
 
@@ -572,17 +573,28 @@ export async function saveContentAction(
       }
 
       const parsed = siteSettingsFormSchema.parse(Object.fromEntries(formData))
+      let logoUrl = parsed.logoUrl
+
+      if (parsed.imageJson) {
+        const logoImage = productImageSchema.parse(JSON.parse(parsed.imageJson))
+        logoUrl = logoImage.url
+      }
+
+      const settingsPayload = {
+        ...parsed,
+        logoUrl,
+        id: "default",
+        updatedAt: new Date().toISOString(),
+      }
+
       await db
         .collection("siteSettings")
         .doc("default")
-        .set(
-          {
-            ...parsed,
-            id: "default",
-            updatedAt: new Date().toISOString(),
-          },
-          { merge: true },
-        )
+        .set(settingsPayload, { merge: true })
+      await db.collection("settings").doc("general").set(
+        { ...settingsPayload, id: "general" },
+        { merge: true },
+      )
     } else if (kind === "faq") {
       const parsed = faqFormSchema.parse(Object.fromEntries(formData))
       await db

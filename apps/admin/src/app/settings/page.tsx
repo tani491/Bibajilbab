@@ -6,6 +6,7 @@ import { Card, CardContent } from "@bibajilbab/ui/server"
 import { ActionForm } from "@/components/admin/action-feedback"
 import { PageHeader } from "@/components/admin/page-header"
 import { PasswordResetCard } from "@/components/admin/password-reset-card"
+import { ImageUploadField } from "@/components/admin/image-upload-field"
 import { AdminShell } from "@/components/layout/admin-shell"
 import { saveContentAction } from "@/lib/admin-actions"
 import { getSiteSettingsDocument } from "@/lib/admin-data"
@@ -91,16 +92,19 @@ export default async function SettingsPage() {
                       className="h-11 w-full rounded-card border border-brand-border px-3 text-sm"
                     />
                   </label>
-                  <label className="text-sm font-medium text-brand-ink">
-                    <span className="mb-2 block">Logo</span>
-                    <input
-                      name="logoUrl"
-                      type="url"
-                      defaultValue={textValue(settings, "logoUrl")}
-                      placeholder="https://..."
-                      className="h-11 w-full rounded-card border border-brand-border px-3 text-sm"
-                    />
-                  </label>
+                  <ImageUploadField
+                    defaultImage={
+                      textValue(settings, "logoUrl")
+                        ? {
+                            url: textValue(settings, "logoUrl"),
+                            alt: textValue(settings, "brandName", brandConfig.name),
+                            position: 0,
+                          }
+                        : undefined
+                    }
+                    folder="bibajilbab/logo"
+                    label="Logo de la boutique"
+                  />
                   <label className="text-sm font-medium text-brand-ink md:col-span-2">
                     <span className="mb-2 block">Slogan</span>
                     <input
