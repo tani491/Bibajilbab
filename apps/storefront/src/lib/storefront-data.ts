@@ -82,26 +82,26 @@ function toStoreProduct(value: unknown): StoreProduct | null {
           .filter((image) => productImageSchema.safeParse(image).success)
 
         return {
-        ...normalizedValue,
-        collectionIds: Array.isArray(normalizedValue.collectionIds)
-          ? normalizedValue.collectionIds
-          : Array.isArray(normalizedValue.collectionSlugs)
-            ? normalizedValue.collectionSlugs
+        ...productRecord,
+        collectionIds: Array.isArray(productRecord.collectionIds)
+          ? productRecord.collectionIds
+          : Array.isArray(productRecord.collectionSlugs)
+            ? productRecord.collectionSlugs
             : [],
-        tags: Array.isArray(normalizedValue.tags) ? normalizedValue.tags : [],
+        tags: Array.isArray(productRecord.tags) ? productRecord.tags : [],
         images,
-        sizes: Array.isArray(normalizedValue.sizes) ? normalizedValue.sizes : [],
-        colors: Array.isArray(normalizedValue.colors) ? normalizedValue.colors : [],
-        variants: Array.isArray(normalizedValue.variants) ? normalizedValue.variants : [],
-        currency: normalizedValue.currency ?? "XOF",
-        featured: normalizedValue.featured ?? false,
-        seo: normalizedValue.seo ?? {
+        sizes: Array.isArray(productRecord.sizes) ? productRecord.sizes : [],
+        colors: Array.isArray(productRecord.colors) ? productRecord.colors : [],
+        variants: Array.isArray(productRecord.variants) ? productRecord.variants : [],
+        currency: productRecord.currency ?? "XOF",
+        featured: productRecord.featured ?? false,
+        seo: productRecord.seo ?? {
           metaTitle: name,
           metaDescription: typeof productRecord.shortDescription === "string" ? productRecord.shortDescription : "Collection BibaJilbab",
           noIndex: false,
         },
-        createdAt: normalizedValue.createdAt ?? new Date(0).toISOString(),
-        updatedAt: normalizedValue.updatedAt ?? normalizedValue.createdAt ?? new Date(0).toISOString(),
+        createdAt: productRecord.createdAt ?? new Date(0).toISOString(),
+        updatedAt: productRecord.updatedAt ?? productRecord.createdAt ?? new Date(0).toISOString(),
         }
       })()
     : normalizedValue
