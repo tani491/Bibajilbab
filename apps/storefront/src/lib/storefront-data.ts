@@ -66,8 +66,14 @@ function normalizeImageCandidate(value: unknown, fallbackAlt: string, position: 
 function toStoreProduct(value: unknown): StoreProduct | null {
   const source = value && typeof value === "object" ? value : null
   const normalizedValue =
-    source && "status" in source && (source.status === "active" || source.status === "published")
-      ? { ...source, status: "published" }
+    source
+      ? {
+          ...source,
+          status:
+            !("status" in source) || source.status === "active" || source.status === "published"
+              ? "published"
+              : source.status,
+        }
       : value
   const candidate = normalizedValue && typeof normalizedValue === "object"
     ? (() => {
@@ -201,6 +207,7 @@ export async function getStorefrontProducts({
         return product
       })
       .filter((product): product is StoreProduct => product !== null)
+      .filter((product) => status === "active" || product.status === status)
 
     console.log("[Storefront] Published products accepted:", products.length)
     return products
