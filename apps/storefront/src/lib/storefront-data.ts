@@ -212,10 +212,7 @@ export async function getStorefrontProducts({
     console.log("[Storefront] Published products accepted:", products.length)
     return products
   } catch (error) {
-    console.error("[storefront] Lecture Firestore products impossible", {
-      error,
-      firebase: getFirebaseAdminStatus(),
-    })
+    console.error("[Storefront Firestore Error]", error)
     return []
   }
 }
