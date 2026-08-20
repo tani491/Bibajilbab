@@ -59,7 +59,7 @@ function toStoreProduct(value: unknown): StoreProduct | null {
     longDescription: product.longDescription,
     price: product.price,
     currency: product.currency,
-    badge: product.badge,
+    ...(product.badge ? { badge: product.badge } : {}),
     featured: product.featured,
     previewRank: 0,
     status: product.status,
