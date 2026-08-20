@@ -131,12 +131,18 @@ export function CartClient({ siteUrl }: { siteUrl: string }) {
               href={`/produits/${line.slug}`}
               className="relative aspect-[4/5] overflow-hidden rounded-card bg-brand-blush focus-visible:outline-none focus-visible:shadow-focus"
             >
-              <ResilientImage
-                src={line.image.src}
-                alt={line.image.alt}
-                sizes="112px"
-                className="object-cover"
-              />
+              {line.image.src ? (
+                <ResilientImage
+                  src={line.image.src}
+                  alt={line.image.alt}
+                  sizes="112px"
+                  className="object-cover"
+                />
+              ) : (
+                <span className="flex h-full w-full items-center justify-center text-xs text-brand-muted">
+                  Image indisponible
+                </span>
+              )}
             </Link>
             <div className="grid gap-4 lg:grid-cols-[1fr_auto]">
               <div>

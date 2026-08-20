@@ -49,8 +49,14 @@ export default async function CollectionPage({ params, searchParams }: Collectio
   }
 
   const filters = { ...parseCatalogFilters(await searchParams), collection: collection.slug }
-  const products = await getStorefrontProducts()
+  const products = await getStorefrontProducts({ status: "published" })
   const filteredProducts = getFilteredProducts(products, filters)
+  const sizeOptions = Array.from(
+    new Map(products.flatMap((product) => product.sizes).map((item) => [item.id, { value: item.id, label: item.label }])).values(),
+  )
+  const colorOptions = Array.from(
+    new Map(products.flatMap((product) => product.colors).map((item) => [item.id, { value: item.id, label: item.name }])).values(),
+  )
 
   return (
     <main className="py-12">
@@ -71,6 +77,8 @@ export default async function CollectionPage({ params, searchParams }: Collectio
             pathname={`/collections/${collection.slug}`}
             resetHref={`/collections/${collection.slug}`}
             lockCollection={collection.slug}
+            sizeOptions={sizeOptions}
+            colorOptions={colorOptions}
           />
         </div>
         <p className="mt-6 text-sm font-medium text-brand-muted">

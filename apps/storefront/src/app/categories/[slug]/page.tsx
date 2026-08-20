@@ -49,8 +49,14 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
   }
 
   const filters = { ...parseCatalogFilters(await searchParams), category: category.slug }
-  const products = await getStorefrontProducts()
+  const products = await getStorefrontProducts({ status: "published" })
   const filteredProducts = getFilteredProducts(products, filters)
+  const sizeOptions = Array.from(
+    new Map(products.flatMap((product) => product.sizes).map((item) => [item.id, { value: item.id, label: item.label }])).values(),
+  )
+  const colorOptions = Array.from(
+    new Map(products.flatMap((product) => product.colors).map((item) => [item.id, { value: item.id, label: item.name }])).values(),
+  )
 
   return (
     <main className="py-12">
@@ -69,6 +75,8 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
             pathname={`/categories/${category.slug}`}
             resetHref={`/categories/${category.slug}`}
             lockCategory={category.slug}
+            sizeOptions={sizeOptions}
+            colorOptions={colorOptions}
           />
         </div>
         <p className="mt-6 text-sm font-medium text-brand-muted">

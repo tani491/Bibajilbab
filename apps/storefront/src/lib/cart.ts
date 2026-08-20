@@ -109,7 +109,7 @@ export function createCartLine(product: StoreProduct, selection: ProductSelectio
     unitPrice: product.price,
     quantity: selection.quantity,
     image: {
-      src: image?.src ?? "/demo/image-placeholder.svg",
+      src: image?.src ?? "",
       alt: image?.alt ?? product.name,
     },
   }

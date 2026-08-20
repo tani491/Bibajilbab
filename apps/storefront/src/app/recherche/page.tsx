@@ -27,8 +27,15 @@ export default async function SearchPage({
   searchParams: Promise<SearchParamRecord>
 }) {
   const filters = parseCatalogFilters(await searchParams)
-  const filteredProducts = getFilteredProducts(await getStorefrontProducts(), filters)
+  const products = await getStorefrontProducts({ status: "published" })
+  const filteredProducts = getFilteredProducts(products, filters)
   const paginated = paginateProducts(filteredProducts, filters.page, 12)
+  const sizeOptions = Array.from(
+    new Map(products.flatMap((product) => product.sizes).map((item) => [item.id, { value: item.id, label: item.label }])).values(),
+  )
+  const colorOptions = Array.from(
+    new Map(products.flatMap((product) => product.colors).map((item) => [item.id, { value: item.id, label: item.name }])).values(),
+  )
 
   return (
     <main className="py-12">
@@ -39,7 +46,13 @@ export default async function SearchPage({
           description="Recherchez par nom, référence, couleur ou collection. Les filtres restent dans l'URL."
         />
         <div className="mt-8">
-          <CatalogFiltersForm filters={filters} pathname="/recherche" resetHref="/recherche" />
+          <CatalogFiltersForm
+            filters={filters}
+            pathname="/recherche"
+            resetHref="/recherche"
+            sizeOptions={sizeOptions}
+            colorOptions={colorOptions}
+          />
         </div>
         <p className="mt-6 flex items-center gap-2 text-sm font-medium text-brand-muted">
           <Search aria-hidden="true" className="h-4 w-4" />

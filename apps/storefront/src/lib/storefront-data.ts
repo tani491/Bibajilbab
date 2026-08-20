@@ -4,8 +4,6 @@ import { productSchema } from "@bibajilbab/types"
 
 import { getFirebaseAdminFirestore } from "./firebase/admin"
 import {
-  getPublishedProducts,
-  products as demoProducts,
   type StoreProduct,
   type StoreProductImage,
 } from "./catalog"
@@ -102,21 +100,26 @@ function toIsoString(value: string | Date | { seconds: number; nanoseconds: numb
   return new Date(value.seconds * 1000 + Math.floor(value.nanoseconds / 1_000_000)).toISOString()
 }
 
-export async function getStorefrontProducts(): Promise<StoreProduct[]> {
+export async function getStorefrontProducts({
+  status = "published",
+}: { status?: "published" } = {}): Promise<StoreProduct[]> {
   try {
-    const snapshot = await getFirebaseAdminFirestore().collection("products").get()
+    const snapshot = await getFirebaseAdminFirestore()
+      .collection("products")
+      .where("status", "==", status)
+      .get()
     const products = snapshot.docs
       .map((document) => toStoreProduct({ id: document.id, ...document.data() }))
       .filter((product): product is StoreProduct => product !== null)
 
-    return products.length > 0 ? products : getPublishedProducts()
+    return products
   } catch {
-    return demoProducts.filter((product) => product.status === "published")
+    return []
   }
 }
 
 export async function getStorefrontProductBySlug(slug: string): Promise<StoreProduct | undefined> {
-  const products = await getStorefrontProducts()
+  const products = await getStorefrontProducts({ status: "published" })
   return products.find((product) => product.slug === slug)
 }
 
@@ -143,8 +146,9 @@ export async function getStorefrontHero(): Promise<StorefrontHero | null> {
       status?: unknown
     }
     const media = data.heroDesktopMedia ?? data.heroMobileMedia
+    const videoUrl = typeof data.heroVideoUrl === "string" ? data.heroVideoUrl : undefined
 
-    if (data.status !== "published" || typeof media?.url !== "string") {
+    if (data.status !== "published" || (typeof media?.url !== "string" && !videoUrl)) {
       return null
     }
 
@@ -157,9 +161,9 @@ export async function getStorefrontHero(): Promise<StorefrontHero | null> {
           : "Découvrez nos djilbabs, khimars, tuniques et tenues de prière.",
       ctaLabel: typeof data.ctaLabel === "string" ? data.ctaLabel : "Découvrir la collection",
       ctaHref: typeof data.ctaHref === "string" ? data.ctaHref : "/catalogue",
-      imageUrl: media.url,
-      imageAlt: typeof media.alt === "string" ? media.alt : "Collection BibaJilbab",
-      videoUrl: typeof data.heroVideoUrl === "string" ? data.heroVideoUrl : undefined,
+      imageUrl: typeof media?.url === "string" ? media.url : "",
+      imageAlt: typeof media?.alt === "string" ? media.alt : "Collection BibaJilbab",
+      videoUrl,
     }
   } catch {
     return null

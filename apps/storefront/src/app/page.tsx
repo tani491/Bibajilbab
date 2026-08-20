@@ -40,7 +40,7 @@ export const dynamic = "force-dynamic"
 
 export default async function StorefrontHomePage() {
   const publicEnv = parsePublicEnv(process.env)
-  const products = await getStorefrontProducts()
+  const products = await getStorefrontProducts({ status: "published" })
   const hero = await getStorefrontHero()
   const featuredProducts = products.filter((product) => product.featured).slice(0, 4)
   const previewPopularProducts = [...products]
@@ -54,14 +54,27 @@ export default async function StorefrontHomePage() {
     <main>
       <section className="relative isolate overflow-hidden bg-brand-blush lg:min-h-[680px]">
         <div className="relative h-[200px] overflow-hidden sm:h-[320px] lg:absolute lg:inset-0 lg:h-auto">
-          <Image
-            src={hero?.imageUrl ?? "/images/hero-modest-fashion.png"}
-            alt={hero?.imageAlt ?? "Visuel éditorial d'une tenue pudique rose poudré"}
-            fill
-            priority
-            sizes="100vw"
-            className="object-cover object-[62%_center]"
-          />
+          {hero?.videoUrl ? (
+            <video
+              autoPlay
+              loop
+              muted
+              playsInline
+              className="h-full w-full object-cover object-[62%_center]"
+              src={hero.videoUrl}
+            />
+          ) : hero?.imageUrl ? (
+            <Image
+              src={hero.imageUrl}
+              alt={hero.imageAlt}
+              fill
+              priority
+              sizes="100vw"
+              className="object-cover object-[62%_center]"
+            />
+          ) : (
+            <div className="h-full w-full bg-brand-blush" aria-hidden="true" />
+          )}
         </div>
         <div className="absolute inset-y-0 left-0 hidden w-[52%] bg-white/85 lg:block" />
         <Container className="relative z-10 bg-white py-6 lg:flex lg:min-h-[680px] lg:items-center lg:bg-transparent lg:py-16">
@@ -111,13 +124,15 @@ export default async function StorefrontHomePage() {
                 className="group overflow-hidden rounded-card border border-brand-border bg-white transition hover:-translate-y-0.5 hover:shadow-soft focus-visible:outline-none focus-visible:shadow-focus"
               >
                 <div className="relative aspect-[4/5] bg-brand-blush">
-                  <Image
-                    src={category.imageSrc}
-                    alt={category.imageAlt}
-                    fill
-                    sizes="(max-width: 1024px) 50vw, 25vw"
-                    className="object-cover transition duration-300 group-hover:scale-105"
-                  />
+                  {category.imageSrc ? (
+                    <Image
+                      src={category.imageSrc}
+                      alt={category.imageAlt}
+                      fill
+                      sizes="(max-width: 1024px) 50vw, 25vw"
+                      className="object-cover transition duration-300 group-hover:scale-105"
+                    />
+                  ) : null}
                 </div>
                 <div className="p-4">
                   <h2 className="text-lg font-semibold text-brand-ink">{category.name}</h2>
@@ -184,13 +199,15 @@ export default async function StorefrontHomePage() {
                 className="group overflow-hidden rounded-card border border-brand-border bg-white transition hover:-translate-y-0.5 hover:shadow-soft focus-visible:outline-none focus-visible:shadow-focus"
               >
                 <div className="relative aspect-[4/5] bg-brand-blush">
-                  <Image
-                    src={collection.imageSrc}
-                    alt={collection.imageAlt}
-                    fill
-                    sizes="(max-width: 1024px) 50vw, 25vw"
-                    className="object-cover transition duration-300 group-hover:scale-105"
-                  />
+                  {collection.imageSrc ? (
+                    <Image
+                      src={collection.imageSrc}
+                      alt={collection.imageAlt}
+                      fill
+                      sizes="(max-width: 1024px) 50vw, 25vw"
+                      className="object-cover transition duration-300 group-hover:scale-105"
+                    />
+                  ) : null}
                 </div>
                 <div className="p-4">
                   <h3 className="text-lg font-semibold text-brand-ink">{collection.name}</h3>

@@ -24,12 +24,16 @@ export function ProductCardClient({ product }: { product: StoreProduct }) {
         aria-label={`Voir ${product.name}`}
       >
         <div className="relative aspect-[4/5] overflow-hidden bg-brand-blush">
-          <ResilientImage
-            src={image?.src ?? "/demo/image-placeholder.svg"}
-            alt={image?.alt ?? product.name}
-            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
-            className="object-cover transition duration-300 group-hover:scale-105"
-          />
+          {image ? (
+            <ResilientImage
+              src={image.src}
+              alt={image.alt}
+              sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+              className="object-cover transition duration-300 group-hover:scale-105"
+            />
+          ) : (
+            <div className="h-full w-full bg-brand-blush" aria-label="Image indisponible" />
+          )}
           {product.badge ? (
             <Badge className="absolute left-3 top-3" variant="plum">
               {product.badge}

@@ -3,7 +3,7 @@ import Link from "next/link"
 
 import { Button } from "@bibajilbab/ui/server"
 
-import { categories, collections, products } from "@/lib/catalog"
+import { categories, collections } from "@/lib/catalog"
 import type { CatalogFilters } from "@/lib/filters"
 
 function uniqueOptions<T extends { id: string; name?: string; label?: string }>(
@@ -21,9 +21,6 @@ function uniqueOptions<T extends { id: string; name?: string; label?: string }>(
 
   return options
 }
-
-const sizeOptions = uniqueOptions(products.flatMap((product) => product.sizes))
-const colorOptions = uniqueOptions(products.flatMap((product) => product.colors))
 
 function getActiveFilterCount(filters: CatalogFilters): number {
   return [
@@ -45,12 +42,16 @@ export function CatalogFiltersForm({
   resetHref,
   lockCategory,
   lockCollection,
+  sizeOptions,
+  colorOptions,
 }: {
   filters: CatalogFilters
   pathname: string
   resetHref: string
   lockCategory?: string
   lockCollection?: string
+  sizeOptions: Array<{ value: string; label: string }>
+  colorOptions: Array<{ value: string; label: string }>
 }) {
   const activeFilterCount = getActiveFilterCount(filters)
 

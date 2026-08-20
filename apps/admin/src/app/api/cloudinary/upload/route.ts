@@ -6,7 +6,7 @@ import { CloudinaryUnavailableError, parseServerEnv } from "@bibajilbab/config"
 import { requireAdminSession } from "@/lib/auth"
 import { writeAuditLog } from "@/lib/audit"
 import { getCloudinaryServer } from "@/lib/cloudinary/server"
-import { validateAdminImageFile, validateCloudinaryFolderName } from "@/lib/cloudinary/validation"
+import { validateAdminMediaFile, validateCloudinaryFolderName } from "@/lib/cloudinary/validation"
 import { isSameOriginRequest } from "@/lib/csrf"
 import { checkRateLimit } from "@/lib/rate-limit"
 
@@ -34,7 +34,7 @@ function uploadBuffer({
       {
         folder,
         overwrite: false,
-        resource_type: "image",
+        resource_type: "auto",
         unique_filename: true,
       },
       (error, result) => {
@@ -99,7 +99,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Maximum 10 fichiers par upload." }, { status: 400 })
     }
 
-    const validationError = files.map(validateAdminImageFile).find((error) => error !== null)
+    const validationError = files.map(validateAdminMediaFile).find((error) => error !== null)
 
     if (validationError) {
       return NextResponse.json({ error: validationError }, { status: 400 })

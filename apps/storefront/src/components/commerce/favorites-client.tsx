@@ -99,12 +99,18 @@ export function FavoritesClient({ products }: { products: StoreProduct[] }) {
                 href={`/produits/${product.slug}`}
                 className="relative aspect-[4/5] overflow-hidden rounded-card bg-brand-blush focus-visible:outline-none focus-visible:shadow-focus"
               >
-                <ResilientImage
-                  src={image?.src ?? "/demo/image-placeholder.svg"}
-                  alt={image?.alt ?? product.name}
-                  sizes="112px"
-                  className="object-cover"
-                />
+                {image ? (
+                  <ResilientImage
+                    src={image.src}
+                    alt={image.alt}
+                    sizes="112px"
+                    className="object-cover"
+                  />
+                ) : (
+                  <span className="flex h-full w-full items-center justify-center text-xs text-brand-muted">
+                    Image indisponible
+                  </span>
+                )}
               </Link>
               <div>
                 <Link

@@ -84,10 +84,6 @@ export function ProductHeroFields({
     setError("")
     setMedia(localMedia)
 
-    if (isVideoFile(file)) {
-      return
-    }
-
     setUploading(true)
 
     try {
@@ -118,7 +114,7 @@ export function ProductHeroFields({
         width: upload.width,
         height: upload.height,
         position: 0,
-        kind: "image",
+        kind: isVideoFile(file) ? "video" : "image",
       })
     } catch {
       setMedia(localMedia)

@@ -22,7 +22,7 @@ export default async function FavoritesPage() {
           description="Les favoris sont conservés dans ce navigateur, sans compte client obligatoire."
         />
         <div className="mt-8">
-          <FavoritesClient products={await getStorefrontProducts()} />
+          <FavoritesClient products={await getStorefrontProducts({ status: "published" })} />
         </div>
       </Container>
     </main>

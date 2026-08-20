@@ -1,4 +1,5 @@
 export const adminImageMaxBytes = 5 * 1024 * 1024
+export const adminVideoMaxBytes = 50 * 1024 * 1024
 export const allowedAdminImageMimeTypes = new Set([
   "image/avif",
   "image/jpeg",
@@ -27,6 +28,26 @@ export function validateAdminImageFile(file: UploadFileLike): string | null {
   }
 
   return null
+}
+
+export function validateAdminMediaFile(file: UploadFileLike): string | null {
+  if (file.type.startsWith("video/")) {
+    if (!new Set(["video/mp4", "video/webm"]).has(file.type)) {
+      return "Format vidéo refusé. Utilisez MP4 ou WebM."
+    }
+
+    if (file.size <= 0) {
+      return "Fichier vidéo vide."
+    }
+
+    if (file.size > adminVideoMaxBytes) {
+      return "Vidéo trop lourde. Limite : 50 Mo."
+    }
+
+    return null
+  }
+
+  return validateAdminImageFile(file)
 }
 
 export function validateCloudinaryFolderName(folder: string): string | null {

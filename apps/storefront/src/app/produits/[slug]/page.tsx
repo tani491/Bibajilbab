@@ -54,7 +54,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
   }
 
   const publicEnv = parsePublicEnv(process.env)
-  const allProducts = await getStorefrontProducts()
+  const allProducts = await getStorefrontProducts({ status: "published" })
   const relatedProducts = allProducts
     .filter(
       (item) =>

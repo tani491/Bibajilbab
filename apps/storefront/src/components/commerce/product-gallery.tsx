@@ -16,12 +16,16 @@ export function ProductGallery({ product }: { product: StoreProduct }) {
   return (
     <div className="space-y-4">
       <div className="relative aspect-[4/5] overflow-hidden rounded-card border border-brand-border bg-brand-blush">
-        <ResilientImage
-          src={activeImage?.src ?? "/demo/image-placeholder.svg"}
-          alt={activeImage?.alt ?? product.name}
-          sizes="(max-width: 1024px) 100vw, 50vw"
-          className="object-cover"
-        />
+        {activeImage ? (
+          <ResilientImage
+            src={activeImage.src}
+            alt={activeImage.alt}
+            sizes="(max-width: 1024px) 100vw, 50vw"
+            className="object-cover"
+          />
+        ) : (
+          <div className="h-full w-full bg-brand-blush" aria-label="Image indisponible" />
+        )}
         <IconButton
           className="absolute bottom-3 right-3 bg-white/95"
           label="Agrandir l'image produit"
@@ -58,12 +62,16 @@ export function ProductGallery({ product }: { product: StoreProduct }) {
         className="max-w-3xl"
       >
         <div className="relative aspect-[4/5] overflow-hidden rounded-card bg-brand-blush">
-          <ResilientImage
-            src={activeImage?.src ?? "/demo/image-placeholder.svg"}
-            alt={activeImage?.alt ?? product.name}
-            sizes="90vw"
-            className="object-contain"
-          />
+          {activeImage ? (
+            <ResilientImage
+              src={activeImage.src}
+              alt={activeImage.alt}
+              sizes="90vw"
+              className="object-contain"
+            />
+          ) : (
+            <div className="h-full w-full bg-brand-blush" aria-label="Image indisponible" />
+          )}
         </div>
       </Dialog>
     </div>

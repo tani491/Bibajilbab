@@ -3,8 +3,6 @@
 import Image from "next/image"
 import { useState } from "react"
 
-import { fallbackProductImage } from "@bibajilbab/config/images"
-
 export interface ResilientImageProps {
   src: string
   alt: string
@@ -18,9 +16,14 @@ export function ResilientImage({
   alt,
   sizes,
   className,
-  fallbackSrc = fallbackProductImage,
+  fallbackSrc,
 }: ResilientImageProps) {
   const [currentSrc, setCurrentSrc] = useState(src)
+  const [failed, setFailed] = useState(false)
+
+  if (failed) {
+    return <div className="h-full w-full bg-brand-blush" aria-label="Image indisponible" />
+  }
 
   return (
     <Image
@@ -30,8 +33,10 @@ export function ResilientImage({
       sizes={sizes}
       className={className}
       onError={() => {
-        if (currentSrc !== fallbackSrc) {
+        if (fallbackSrc && currentSrc !== fallbackSrc) {
           setCurrentSrc(fallbackSrc)
+        } else {
+          setFailed(true)
         }
       }}
     />

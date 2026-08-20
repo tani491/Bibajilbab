@@ -28,9 +28,15 @@ export default async function CataloguePage({
   searchParams: Promise<SearchParamRecord>
 }) {
   const filters = parseCatalogFilters(await searchParams)
-  const allProducts = await getStorefrontProducts()
+  const allProducts = await getStorefrontProducts({ status: "published" })
   const filteredProducts = getFilteredProducts(allProducts, filters)
   const paginated = paginateProducts(filteredProducts, filters.page, 8)
+  const sizeOptions = Array.from(
+    new Map(allProducts.flatMap((product) => product.sizes).map((item) => [item.id, { value: item.id, label: item.label }])).values(),
+  )
+  const colorOptions = Array.from(
+    new Map(allProducts.flatMap((product) => product.colors).map((item) => [item.id, { value: item.id, label: item.name }])).values(),
+  )
 
   return (
     <main className="py-12">
@@ -41,7 +47,13 @@ export default async function CataloguePage({
           description="Filtrez les produits d'aperçu. Les disponibilités réelles seront confirmées sur WhatsApp."
         />
         <div className="mt-8">
-          <CatalogFiltersForm filters={filters} pathname="/catalogue" resetHref="/catalogue" />
+          <CatalogFiltersForm
+            filters={filters}
+            pathname="/catalogue"
+            resetHref="/catalogue"
+            sizeOptions={sizeOptions}
+            colorOptions={colorOptions}
+          />
         </div>
         <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <p className="text-sm font-medium text-brand-muted">

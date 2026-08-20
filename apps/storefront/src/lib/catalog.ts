@@ -92,28 +92,28 @@ export const categories: StoreCategory[] = [
     slug: "djilbabs",
     name: "Djilbabs",
     description: "Silhouettes couvrantes, élégantes et pensées pour le quotidien.",
-    imageSrc: "/demo/djilbab.svg",
+    imageSrc: "",
     imageAlt: "Illustration d'un djilbab rose poudré",
   },
   {
     slug: "khimars",
     name: "Khimars",
     description: "Voiles amples et fluides pour une pudeur confortable.",
-    imageSrc: "/demo/khimar.svg",
+    imageSrc: "",
     imageAlt: "Illustration d'un khimar prune",
   },
   {
     slug: "tuniques",
     name: "Tuniques",
     description: "Pièces longues et faciles à associer avec vos essentiels.",
-    imageSrc: "/demo/tunique.svg",
+    imageSrc: "",
     imageAlt: "Illustration d'une tunique claire",
   },
   {
     slug: "priere",
     name: "Prière",
     description: "Tenues sobres et pratiques pour les moments de recueillement.",
-    imageSrc: "/demo/priere.svg",
+    imageSrc: "",
     imageAlt: "Illustration d'une tenue de prière",
   },
 ]
@@ -124,7 +124,7 @@ export const collections: StoreCollection[] = [
     name: "Nouveautés",
     description: "Les derniers modèles à renseigner par BibaJilbab.",
     type: "permanent",
-    imageSrc: "/demo/khimar.svg",
+    imageSrc: "",
     imageAlt: "Illustration de nouveautés modest fashion",
   },
   {
@@ -132,7 +132,7 @@ export const collections: StoreCollection[] = [
     name: "Essentiels",
     description: "Les coupes faciles à porter toute l'année.",
     type: "permanent",
-    imageSrc: "/demo/djilbab.svg",
+    imageSrc: "",
     imageAlt: "Illustration de pièces essentielles",
   },
   {
@@ -140,7 +140,7 @@ export const collections: StoreCollection[] = [
     name: "Tabaski",
     description: "Une sélection habillée pour les célébrations de Tabaski.",
     type: "tabaski",
-    imageSrc: "/demo/tabaski.svg",
+    imageSrc: "",
     imageAlt: "Illustration d'une collection Tabaski",
   },
   {
@@ -148,7 +148,7 @@ export const collections: StoreCollection[] = [
     name: "Korité",
     description: "Des ensembles élégants pour célébrer Korité avec pudeur.",
     type: "korite",
-    imageSrc: "/demo/korite.svg",
+    imageSrc: "",
     imageAlt: "Illustration d'une collection Korité",
   },
 ]

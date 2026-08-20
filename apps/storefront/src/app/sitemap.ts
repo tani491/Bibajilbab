@@ -2,7 +2,8 @@ import type { MetadataRoute } from "next"
 
 import { parsePublicEnv } from "@bibajilbab/config"
 
-import { categories, collections, getPublishedProducts } from "@/lib/catalog"
+import { categories, collections } from "@/lib/catalog"
+import { getStorefrontProducts } from "@/lib/storefront-data"
 
 const staticRoutes = [
   "/",
@@ -21,12 +22,16 @@ const staticRoutes = [
   "/mentions-legales",
 ]
 
-export default function sitemap(): MetadataRoute.Sitemap {
+export const dynamic = "force-dynamic"
+
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const publicEnv = parsePublicEnv(process.env)
   const now = new Date()
   const categoryRoutes = categories.map((category) => `/categories/${category.slug}`)
   const collectionRoutes = collections.map((collection) => `/collections/${collection.slug}`)
-  const productRoutes = getPublishedProducts().map((product) => `/produits/${product.slug}`)
+  const productRoutes = (await getStorefrontProducts({ status: "published" })).map(
+    (product) => `/produits/${product.slug}`,
+  )
 
   return [...staticRoutes, ...categoryRoutes, ...collectionRoutes, ...productRoutes].map(
     (route) => ({
