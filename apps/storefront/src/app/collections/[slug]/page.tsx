@@ -10,9 +10,9 @@ import {
   collections,
   createPageMetadata,
   getCollectionBySlug,
-  getProductsByCollection,
 } from "@/lib/catalog"
 import { getFilteredProducts, parseCatalogFilters, type SearchParamRecord } from "@/lib/filters"
+import { getStorefrontProducts } from "@/lib/storefront-data"
 
 type CollectionPageProps = {
   params: Promise<{ slug: string }>
@@ -22,6 +22,8 @@ type CollectionPageProps = {
 export function generateStaticParams() {
   return collections.map((collection) => ({ slug: collection.slug }))
 }
+
+export const dynamic = "force-dynamic"
 
 export async function generateMetadata({ params }: CollectionPageProps): Promise<Metadata> {
   const { slug } = await params
@@ -47,7 +49,8 @@ export default async function CollectionPage({ params, searchParams }: Collectio
   }
 
   const filters = { ...parseCatalogFilters(await searchParams), collection: collection.slug }
-  const filteredProducts = getFilteredProducts(getProductsByCollection(collection.slug), filters)
+  const products = await getStorefrontProducts()
+  const filteredProducts = getFilteredProducts(products, filters)
 
   return (
     <main className="py-12">

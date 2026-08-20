@@ -53,6 +53,22 @@ function docIdFromForm(formData: FormData, fallback: string): string {
   return typeof id === "string" && id.trim() ? id.trim() : fallback
 }
 
+function withoutUndefined<T>(value: T): T {
+  if (Array.isArray(value)) {
+    return value.map(withoutUndefined) as T
+  }
+
+  if (value && typeof value === "object") {
+    return Object.fromEntries(
+      Object.entries(value).flatMap(([key, entry]) =>
+        entry === undefined ? [] : [[key, withoutUndefined(entry)]],
+      ),
+    ) as T
+  }
+
+  return value
+}
+
 function parseOptionalJson(value: string | undefined) {
   if (!value) {
     return undefined
@@ -109,12 +125,12 @@ export async function saveProductAction(
       .collection("products")
       .doc(documentId)
       .set(
-        {
+        withoutUndefined({
           ...product,
           id: documentId,
           createdAt: existingCreatedAt,
           updatedAt: now,
-        },
+        }),
         { merge: true },
       )
 
@@ -181,6 +197,12 @@ export async function saveProductAction(
     })
     revalidatePath("/products")
     revalidatePath("/content")
+    revalidatePath("/")
+    revalidatePath("/produits")
+    revalidatePath("/catalogue")
+    revalidatePath("/produits/[slug]", "page")
+    revalidatePath("/categories/[slug]", "page")
+    revalidatePath("/collections/[slug]", "page")
 
     return ok(existing ? "Produit modifié." : "Produit créé.")
   } catch (error) {
@@ -215,6 +237,12 @@ export async function updateProductStatusAction(
       documentId: id,
     })
     revalidatePath("/products")
+    revalidatePath("/")
+    revalidatePath("/produits")
+    revalidatePath("/catalogue")
+    revalidatePath("/produits/[slug]", "page")
+    revalidatePath("/categories/[slug]", "page")
+    revalidatePath("/collections/[slug]", "page")
 
     return ok("Statut mis à jour.")
   } catch (error) {

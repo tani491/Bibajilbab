@@ -104,6 +104,10 @@ const optionalDateTimeFormSchema = z
   .transform((value) => (value ? new Date(value).toISOString() : undefined))
   .optional()
 
+const optionalSwitchSchema = z
+  .preprocess((value) => (value === "" ? undefined : value), z.enum(["on"]).optional())
+  .transform(Boolean)
+
 export const productFormSchema = z.object({
   id: z.string().trim().optional(),
   name: z.string().trim().min(1).max(120),
@@ -119,7 +123,7 @@ export const productFormSchema = z.object({
   material: z.string().trim().max(160).optional(),
   careInstructions: z.string().trim().max(500).optional(),
   badge: z.string().trim().max(40).optional(),
-  featured: z.enum(["on"]).optional().transform(Boolean),
+  featured: optionalSwitchSchema,
   status: z.enum(["draft", "published", "archived"]),
   seoTitle: optionalStringSchema,
   seoDescription: optionalStringSchema,
@@ -127,8 +131,8 @@ export const productFormSchema = z.object({
   sizesJson: z.string().trim().min(2),
   colorsJson: z.string().trim().min(2),
   variantsJson: z.string().trim().min(2),
-  heroEnabled: z.enum(["on"]).optional().transform(Boolean),
-  heroWasEnabled: z.enum(["on"]).optional().transform(Boolean),
+  heroEnabled: optionalSwitchSchema,
+  heroWasEnabled: optionalSwitchSchema,
   heroMediaJson: z.string().trim().optional(),
 })
 

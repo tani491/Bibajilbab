@@ -197,8 +197,8 @@ export function ProductVisualFields({
       for (const color of colorOptions) {
         const existingVariant = findExistingVariant(product?.variants, size?.id, color?.id)
         const id = existingVariant?.id ?? variantKey(size?.id, color?.id)
-        const selectedStatus = statusByVariant[id] ?? existingVariant?.status ?? "active"
-        const stock = selectedStatus === "inactive" ? 0 : (stockByVariant[id] ?? 0)
+        const stock = stockByVariant[id] ?? 0
+        const selectedStatus = stock > 0 ? "active" : (statusByVariant[id] ?? existingVariant?.status ?? "inactive")
 
         nextVariants.push({
           id,
@@ -209,7 +209,7 @@ export function ProductVisualFields({
           colorId: color?.id,
           stock,
           lowStockThreshold: existingVariant?.lowStockThreshold ?? 2,
-          status: selectedStatus === "inactive" || stock === 0 ? "inactive" : "active",
+          status: selectedStatus,
         })
       }
     }
@@ -642,8 +642,7 @@ export function ProductVisualFields({
                   <input
                     type="number"
                     min="0"
-                    value={variant.status === "inactive" ? 0 : variant.stock}
-                    disabled={variant.status === "inactive"}
+                    value={variant.stock}
                     onChange={(event) =>
                       setStockByVariant((current) => ({
                         ...current,
@@ -661,9 +660,6 @@ export function ProductVisualFields({
                         ...current,
                         [variant.id]: nextStatus,
                       }))
-                      if (nextStatus === "inactive") {
-                        setStockByVariant((current) => ({ ...current, [variant.id]: 0 }))
-                      }
                     }}
                     className="h-11 rounded-card border border-brand-border bg-white px-3 text-sm"
                     aria-label="Statut de la variante"

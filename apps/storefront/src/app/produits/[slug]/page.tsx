@@ -18,22 +18,21 @@ import {
 import {
   createPageMetadata,
   getCategoryName,
-  getProductBySlug,
-  getPublishedProducts,
-  getRelatedProducts,
 } from "@/lib/catalog"
+import {
+  getStorefrontProductBySlug,
+  getStorefrontProducts,
+} from "@/lib/storefront-data"
 
 type ProductPageProps = {
   params: Promise<{ slug: string }>
 }
 
-export function generateStaticParams() {
-  return getPublishedProducts().map((product) => ({ slug: product.slug }))
-}
+export const dynamic = "force-dynamic"
 
 export async function generateMetadata({ params }: ProductPageProps): Promise<Metadata> {
   const { slug } = await params
-  const product = getProductBySlug(slug)
+  const product = await getStorefrontProductBySlug(slug)
 
   if (!product) {
     return {}
@@ -48,15 +47,22 @@ export async function generateMetadata({ params }: ProductPageProps): Promise<Me
 
 export default async function ProductPage({ params }: ProductPageProps) {
   const { slug } = await params
-  const product = getProductBySlug(slug)
+  const product = await getStorefrontProductBySlug(slug)
 
   if (!product) {
     notFound()
   }
 
   const publicEnv = parsePublicEnv(process.env)
-  const relatedProducts = getRelatedProducts(product)
-  const allProducts = getPublishedProducts()
+  const allProducts = await getStorefrontProducts()
+  const relatedProducts = allProducts
+    .filter(
+      (item) =>
+        item.slug !== product.slug &&
+        (item.categorySlug === product.categorySlug ||
+          item.collectionSlugs.some((collection) => product.collectionSlugs.includes(collection))),
+    )
+    .slice(0, 4)
   const breadcrumbItems = [
     { href: "/", label: "Accueil" },
     { href: "/catalogue", label: "Catalogue" },

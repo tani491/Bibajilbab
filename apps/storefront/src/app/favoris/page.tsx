@@ -1,7 +1,8 @@
 import { Container, SectionHeading } from "@bibajilbab/ui/server"
 
 import { FavoritesClient } from "@/components/commerce/favorites-client"
-import { createPageMetadata, getPublishedProducts } from "@/lib/catalog"
+import { createPageMetadata } from "@/lib/catalog"
+import { getStorefrontProducts } from "@/lib/storefront-data"
 
 export const metadata = createPageMetadata({
   title: "Favoris",
@@ -9,7 +10,9 @@ export const metadata = createPageMetadata({
   path: "/favoris",
 })
 
-export default function FavoritesPage() {
+export const dynamic = "force-dynamic"
+
+export default async function FavoritesPage() {
   return (
     <main className="py-12">
       <Container>
@@ -19,7 +22,7 @@ export default function FavoritesPage() {
           description="Les favoris sont conservés dans ce navigateur, sans compte client obligatoire."
         />
         <div className="mt-8">
-          <FavoritesClient products={getPublishedProducts()} />
+          <FavoritesClient products={await getStorefrontProducts()} />
         </div>
       </Container>
     </main>

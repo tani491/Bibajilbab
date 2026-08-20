@@ -10,9 +10,9 @@ import {
   categories,
   createPageMetadata,
   getCategoryBySlug,
-  getProductsByCategory,
 } from "@/lib/catalog"
 import { getFilteredProducts, parseCatalogFilters, type SearchParamRecord } from "@/lib/filters"
+import { getStorefrontProducts } from "@/lib/storefront-data"
 
 type CategoryPageProps = {
   params: Promise<{ slug: string }>
@@ -22,6 +22,8 @@ type CategoryPageProps = {
 export function generateStaticParams() {
   return categories.map((category) => ({ slug: category.slug }))
 }
+
+export const dynamic = "force-dynamic"
 
 export async function generateMetadata({ params }: CategoryPageProps): Promise<Metadata> {
   const { slug } = await params
@@ -47,7 +49,8 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
   }
 
   const filters = { ...parseCatalogFilters(await searchParams), category: category.slug }
-  const filteredProducts = getFilteredProducts(getProductsByCategory(category.slug), filters)
+  const products = await getStorefrontProducts()
+  const filteredProducts = getFilteredProducts(products, filters)
 
   return (
     <main className="py-12">

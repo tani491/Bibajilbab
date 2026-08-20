@@ -4,7 +4,8 @@ import { Container, SectionHeading } from "@bibajilbab/ui/server"
 
 import { CatalogFiltersForm } from "@/components/commerce/catalog-filters-form"
 import { ProductGrid } from "@/components/commerce/product-grid"
-import { createPageMetadata, getPublishedProducts } from "@/lib/catalog"
+import { createPageMetadata } from "@/lib/catalog"
+import { getStorefrontProducts } from "@/lib/storefront-data"
 import {
   getFilteredProducts,
   paginateProducts,
@@ -18,13 +19,15 @@ export const metadata = createPageMetadata({
   path: "/recherche",
 })
 
+export const dynamic = "force-dynamic"
+
 export default async function SearchPage({
   searchParams,
 }: {
   searchParams: Promise<SearchParamRecord>
 }) {
   const filters = parseCatalogFilters(await searchParams)
-  const filteredProducts = getFilteredProducts(getPublishedProducts(), filters)
+  const filteredProducts = getFilteredProducts(await getStorefrontProducts(), filters)
   const paginated = paginateProducts(filteredProducts, filters.page, 12)
 
   return (

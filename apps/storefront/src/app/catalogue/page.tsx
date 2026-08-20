@@ -4,7 +4,8 @@ import { Container, SectionHeading, buttonStyles } from "@bibajilbab/ui/server"
 
 import { CatalogFiltersForm } from "@/components/commerce/catalog-filters-form"
 import { ProductGrid } from "@/components/commerce/product-grid"
-import { createPageMetadata, getPublishedProducts } from "@/lib/catalog"
+import { createPageMetadata } from "@/lib/catalog"
+import { getStorefrontProducts } from "@/lib/storefront-data"
 import {
   buildCatalogUrl,
   getFilteredProducts,
@@ -19,13 +20,15 @@ export const metadata = createPageMetadata({
   path: "/catalogue",
 })
 
+export const dynamic = "force-dynamic"
+
 export default async function CataloguePage({
   searchParams,
 }: {
   searchParams: Promise<SearchParamRecord>
 }) {
   const filters = parseCatalogFilters(await searchParams)
-  const allProducts = getPublishedProducts()
+  const allProducts = await getStorefrontProducts()
   const filteredProducts = getFilteredProducts(allProducts, filters)
   const paginated = paginateProducts(filteredProducts, filters.page, 8)
 

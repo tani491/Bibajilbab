@@ -14,7 +14,8 @@ import {
 
 import { ProductGrid } from "@/components/commerce/product-grid"
 import { WhatsAppIcon } from "@/components/layout/whatsapp-icon"
-import { categories, collections, getPublishedProducts, testimonials } from "@/lib/catalog"
+import { categories, collections, testimonials } from "@/lib/catalog"
+import { getStorefrontProducts } from "@/lib/storefront-data"
 import { buildGeneralWhatsAppUrl } from "@/lib/whatsapp"
 
 const trustItems = [
@@ -35,9 +36,11 @@ const trustItems = [
   },
 ]
 
-export default function StorefrontHomePage() {
+export const dynamic = "force-dynamic"
+
+export default async function StorefrontHomePage() {
   const publicEnv = parsePublicEnv(process.env)
-  const products = getPublishedProducts()
+  const products = await getStorefrontProducts()
   const featuredProducts = products.filter((product) => product.featured).slice(0, 4)
   const previewPopularProducts = [...products]
     .sort((a, b) => a.previewRank - b.previewRank)
