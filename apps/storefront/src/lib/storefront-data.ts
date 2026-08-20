@@ -1,6 +1,7 @@
 import "server-only"
 
 import { productSchema } from "@bibajilbab/types"
+import type { ProductImage } from "@bibajilbab/types"
 
 import { getFirebaseAdminFirestore } from "./firebase/admin"
 import {
@@ -24,12 +25,7 @@ export interface StorefrontAnnouncement {
   href: string
 }
 
-function mapImage(image: {
-  url: string
-  alt: string
-  width?: number
-  height?: number
-}): StoreProductImage {
+function mapImage(image: ProductImage): StoreProductImage {
   return {
     src: image.url,
     alt: image.alt,
