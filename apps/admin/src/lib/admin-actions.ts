@@ -70,6 +70,22 @@ function withoutUndefined<T>(value: T): T {
   return value
 }
 
+function withoutEmptyValues<T>(value: T): T {
+  if (Array.isArray(value)) {
+    return value.map(withoutEmptyValues) as T
+  }
+
+  if (value && typeof value === "object") {
+    return Object.fromEntries(
+      Object.entries(value).flatMap(([key, entry]) =>
+        entry === undefined || entry === "" ? [] : [[key, withoutEmptyValues(entry)]],
+      ),
+    ) as T
+  }
+
+  return value
+}
+
 function parseOptionalJson(value: string | undefined) {
   if (!value) {
     return undefined
@@ -580,12 +596,12 @@ export async function saveContentAction(
         logoUrl = logoImage.url
       }
 
-      const settingsPayload = {
+      const settingsPayload = withoutEmptyValues({
         ...parsed,
         logoUrl,
         id: "default",
         updatedAt: new Date().toISOString(),
-      }
+      })
 
       await db
         .collection("siteSettings")

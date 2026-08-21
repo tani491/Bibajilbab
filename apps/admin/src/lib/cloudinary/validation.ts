@@ -32,8 +32,8 @@ export function validateAdminImageFile(file: UploadFileLike): string | null {
 
 export function validateAdminMediaFile(file: UploadFileLike): string | null {
   if (file.type.startsWith("video/")) {
-    if (!new Set(["video/mp4", "video/webm"]).has(file.type)) {
-      return "Format vidéo refusé. Utilisez MP4 ou WebM."
+    if (!new Set(["video/mp4", "video/webm", "video/quicktime"]).has(file.type)) {
+      return "Format vidéo refusé. Utilisez MP4, WebM ou QuickTime."
     }
 
     if (file.size <= 0) {

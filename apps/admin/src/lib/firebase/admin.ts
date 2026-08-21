@@ -15,6 +15,8 @@ export interface FirebaseAdminStatus {
   reason?: string
 }
 
+let firestoreInstance: Firestore | undefined
+
 function configureEmulatorEnvironment(): boolean {
   const env = parseServerEnv(process.env)
 
@@ -93,5 +95,10 @@ export function getFirebaseAdminAuth(): Auth {
 }
 
 export function getFirebaseAdminFirestore(): Firestore {
-  return getFirestore(getFirebaseAdminApp())
+  if (!firestoreInstance) {
+    firestoreInstance = getFirestore(getFirebaseAdminApp())
+    firestoreInstance.settings({ ignoreUndefinedProperties: true })
+  }
+
+  return firestoreInstance
 }

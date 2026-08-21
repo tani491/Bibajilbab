@@ -36,6 +36,14 @@ const trustItems = [
   },
 ]
 
+function isVideoMediaUrl(url: string | undefined): boolean {
+  if (!url) {
+    return false
+  }
+
+  return /\.(mp4|webm|mov)(?:$|[?#])/i.test(url) || /\/video\/upload(?:\/|$)/i.test(url)
+}
+
 export const dynamic = "force-dynamic"
 
 export default async function StorefrontHomePage() {
@@ -50,19 +58,20 @@ export default async function StorefrontHomePage() {
   const tabaskiOrKorite = collections.filter((collection) =>
     ["tabaski", "korite"].includes(collection.slug),
   )
+  const heroVideoUrl = hero?.videoUrl || (isVideoMediaUrl(hero?.imageUrl) ? hero.imageUrl : undefined)
 
   return (
     <main>
       <section className="relative isolate overflow-hidden bg-brand-blush lg:min-h-[680px]">
         <div className="relative h-[200px] overflow-hidden sm:h-[320px] lg:absolute lg:inset-0 lg:h-auto">
-          {hero?.videoUrl ? (
+          {heroVideoUrl ? (
             <video
               autoPlay
               loop
               muted
               playsInline
               className="h-full w-full object-cover object-[62%_center]"
-              src={hero.videoUrl}
+              src={heroVideoUrl}
             />
           ) : hero?.imageUrl || fallbackImage ? (
             <Image
@@ -81,19 +90,18 @@ export default async function StorefrontHomePage() {
         <Container className="relative z-10 bg-white py-6 lg:flex lg:min-h-[680px] lg:items-center lg:bg-transparent lg:py-16">
           <div className="max-w-xl">
             <Badge variant="outline" className="bg-white/90">
-              {hero?.eyebrow ?? "BibaJilbab Sénégal"}
+              BibaJilbab Sénégal
             </Badge>
             <h1 className="mt-5 text-3xl font-semibold leading-tight text-brand-ink sm:text-5xl lg:text-6xl">
-              {hero?.title ?? "L'élégance dans la pudeur"}
+              L'élégance dans la pudeur
             </h1>
             <p className="mt-5 max-w-lg text-sm leading-7 text-brand-muted sm:text-lg sm:leading-8">
-              {hero?.body ??
-                "Découvrez nos djilbabs, khimars, tuniques et tenues de prière conçus pour accompagner votre quotidien et vos célébrations."}
+              Découvrez nos djilbabs, khimars, tuniques et tenues de prière conçus pour accompagner votre quotidien et vos célébrations.
             </p>
             <div className="mt-6 flex flex-col gap-3 sm:flex-row lg:mt-8">
-              <Link className={buttonStyles({ size: "lg" })} href={hero?.ctaHref ?? "/catalogue"}>
+              <Link className={buttonStyles({ size: "lg" })} href="/catalogue">
                 <ShoppingBag aria-hidden="true" className="h-5 w-5" />
-                {hero?.ctaLabel ?? "Découvrir la collection"}
+                Découvrir la collection
               </Link>
               <a
                 className={buttonStyles({
