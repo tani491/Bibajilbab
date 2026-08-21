@@ -37,7 +37,7 @@ function mediaJson(media: HeroMedia | null): string {
 }
 
 function isVideoFile(file: File): boolean {
-  return file.type === "video/mp4" || file.type === "video/webm"
+  return file.type === "video/mp4" || file.type === "video/webm" || file.type === "video/quicktime"
 }
 
 function createLocalMedia(file: File, previewUrl: string): HeroMedia {
@@ -167,7 +167,7 @@ export function ProductHeroFields({
             <div>
               <p className="text-sm font-semibold text-brand-ink">Média Hero</p>
               <p className="mt-1 text-xs text-brand-muted">
-                Ajoutez une photo HD ou une vidéo courte MP4/WebM.
+                Ajoutez une photo HD ou une vidéo courte MP4, MOV ou WebM.
               </p>
             </div>
             <div
@@ -189,7 +189,7 @@ export function ProductHeroFields({
                 Choisir un média
                 <input
                   type="file"
-                  accept="image/*,video/mp4,video/webm"
+                  accept="image/*,video/mp4,video/quicktime,video/webm"
                   onChange={handleFileInput}
                   className="sr-only"
                 />

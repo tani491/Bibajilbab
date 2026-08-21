@@ -63,8 +63,8 @@ export default async function StorefrontHomePage() {
 
   return (
     <main>
-      <section className="relative isolate overflow-hidden bg-brand-blush lg:min-h-[680px]">
-        <div className="relative h-[200px] overflow-hidden sm:h-[320px] lg:absolute lg:inset-0 lg:h-auto">
+      <section className="relative isolate min-h-[680px] overflow-hidden bg-brand-blush">
+        <div className="absolute inset-0 overflow-hidden">
           {heroVideoUrl ? (
             <video
               autoPlay
@@ -87,16 +87,16 @@ export default async function StorefrontHomePage() {
             <div className="h-full w-full bg-brand-blush" aria-hidden="true" />
           )}
         </div>
-        <div className="absolute inset-y-0 left-0 hidden w-[52%] bg-white/85 lg:block" />
-        <Container className="relative z-10 bg-white py-6 lg:flex lg:min-h-[680px] lg:items-center lg:bg-transparent lg:py-16">
-          <div className="max-w-xl">
+        <div className="absolute inset-0 bg-white/88 lg:w-[52%] lg:bg-white/85" />
+        <Container className="relative z-10 flex min-h-[680px] items-center justify-center py-16 lg:justify-start lg:py-16">
+          <div className="max-w-xl text-center lg:text-left">
             <Badge variant="outline" className="bg-white/90">
               BibaJilbab Sénégal
             </Badge>
             <h1 className="mt-5 text-3xl font-semibold leading-tight text-brand-ink sm:text-5xl lg:text-6xl">
               L'élégance dans la pudeur
             </h1>
-            <p className="mt-5 max-w-lg text-sm leading-7 text-brand-muted sm:text-lg sm:leading-8">
+            <p className="mx-auto mt-5 max-w-lg text-sm leading-7 text-brand-muted sm:text-lg sm:leading-8 lg:mx-0">
               Découvrez nos djilbabs, khimars, tuniques et tenues de prière conçus pour accompagner votre quotidien et vos célébrations.
             </p>
             <div className="mt-6 flex flex-col gap-3 sm:flex-row lg:mt-8">
