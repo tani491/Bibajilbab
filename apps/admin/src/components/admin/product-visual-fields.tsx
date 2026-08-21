@@ -364,7 +364,7 @@ export function ProductVisualFields({
               Choisir des images
               <input
                 type="file"
-                accept="image/*"
+                accept="image/*,video/*"
                 multiple
                 onChange={handleFileInput}
                 className="sr-only"

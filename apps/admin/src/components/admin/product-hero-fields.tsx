@@ -199,7 +199,7 @@ export function ProductHeroFields({
                 Choisir un média
                 <input
                   type="file"
-                  accept="image/*,video/mp4,video/quicktime,video/webm"
+                  accept="image/*,video/*"
                   onChange={handleFileInput}
                   className="sr-only"
                 />

@@ -146,7 +146,7 @@ export function ImageUploadField({
           <label className="mt-3 inline-flex min-h-10 cursor-pointer items-center justify-center gap-2 rounded-card bg-brand-plum px-4 text-sm font-medium text-white transition hover:bg-brand-mauve focus-within:shadow-focus">
             <UploadCloud aria-hidden="true" className="h-4 w-4" />
             Choisir une image
-            <input type="file" accept="image/*" onChange={handleFileInput} className="sr-only" />
+            <input type="file" accept="image/*,video/*" onChange={handleFileInput} className="sr-only" />
           </label>
         </div>
 

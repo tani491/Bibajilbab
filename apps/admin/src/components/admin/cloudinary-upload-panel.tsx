@@ -81,10 +81,10 @@ export function CloudinaryUploadPanel() {
     <div className="rounded-card border border-brand-border bg-white p-5">
       <div className="flex flex-col gap-4 md:flex-row md:items-end">
         <label className="text-sm font-medium text-brand-ink md:flex-1">
-          <span className="mb-2 block">Téléverser des images</span>
+            <span className="mb-2 block">Téléverser des médias</span>
           <input
             type="file"
-            accept="image/*"
+            accept="image/*,video/*"
             multiple
             onChange={(event) => setFiles(event.target.files)}
             className="block w-full text-sm text-brand-muted file:mr-4 file:h-11 file:rounded-card file:border-0 file:bg-brand-plum file:px-4 file:text-sm file:font-medium file:text-white"
