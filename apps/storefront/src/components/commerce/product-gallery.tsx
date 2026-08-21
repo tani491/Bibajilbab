@@ -49,6 +49,7 @@ export function ProductGallery({ product }: { product: StoreProduct }) {
       >
         {activeImage ? (
           <ResilientImage
+            key={activeImageUrl}
             src={activeImageUrl}
             alt={activeImage.alt}
             sizes="(max-width: 1024px) 100vw, 50vw"
