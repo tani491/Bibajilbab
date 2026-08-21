@@ -88,7 +88,7 @@ export default async function StorefrontHomePage() {
           )}
         </div>
         <Container className="relative z-10 flex min-h-[540px] items-center justify-center py-6 md:min-h-[580px] md:py-8 lg:justify-start">
-          <div className="w-full max-w-xl rounded-2xl border border-white/50 bg-white/90 p-6 text-center shadow-lg backdrop-blur-md md:p-12 lg:w-1/2 lg:text-left">
+          <div className="w-full max-w-xl rounded-2xl border border-white/40 bg-white/60 p-6 text-center shadow-md backdrop-blur-sm md:p-12 lg:w-1/2 lg:text-left">
             <Badge
               variant="outline"
               className="mb-3 inline-block rounded-full border-transparent bg-brand-powder/80 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-brand-plum"
@@ -98,7 +98,7 @@ export default async function StorefrontHomePage() {
             <h1 className="mb-3 text-2xl font-extrabold leading-tight text-slate-900 md:text-4xl">
               L'élégance dans la pudeur
             </h1>
-            <p className="mb-6 text-sm font-normal leading-relaxed text-slate-700 md:text-base">
+            <p className="mb-6 text-sm font-normal leading-relaxed text-slate-800 md:text-base">
               Découvrez nos djilbabs, khimars, tuniques et tenues de prière conçus pour accompagner votre quotidien et vos célébrations.
             </p>
             <div className="flex flex-col gap-3 sm:flex-row">
