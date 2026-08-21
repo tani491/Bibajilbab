@@ -62,7 +62,7 @@ export function SiteHeader({
     <header className="sticky top-0 z-40 border-b border-brand-border bg-white/95 backdrop-blur">
       <a
         href={announcement.href}
-        className="block overflow-hidden bg-brand-blush py-2 text-xs font-medium text-brand-ink transition hover:text-brand-plum focus-visible:outline-none focus-visible:shadow-focus"
+        className="block h-10 overflow-hidden bg-brand-blush py-2.5 text-sm font-semibold tracking-wide text-brand-plum transition hover:text-brand-ink focus-visible:outline-none focus-visible:shadow-focus"
         aria-label={announcement.text}
       >
         <span className="flex min-w-max animate-marquee gap-12 px-4">

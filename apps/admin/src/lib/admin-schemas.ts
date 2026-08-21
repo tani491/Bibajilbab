@@ -247,7 +247,7 @@ export const mediaFormSchema = mediaSchema
 export const siteSettingsFormSchema = siteSettingsSchema.omit({ updatedAt: true }).extend({
   id: z.string().trim().optional(),
   imageJson: z.string().trim().optional(),
-  announcement: z.string().trim().max(180).optional(),
+  announcement: optionalStringSchema,
   heroTitle: z.string().trim().max(120).optional(),
   heroDescription: z.string().trim().max(500).optional(),
   heroDesktopMediaId: z.string().trim().optional(),
