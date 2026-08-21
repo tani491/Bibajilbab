@@ -58,7 +58,8 @@ export default async function StorefrontHomePage() {
   const tabaskiOrKorite = collections.filter((collection) =>
     ["tabaski", "korite"].includes(collection.slug),
   )
-  const heroVideoUrl = hero?.videoUrl || (isVideoMediaUrl(hero?.imageUrl) ? hero.imageUrl : undefined)
+  const heroVideoUrl =
+    hero?.videoUrl || (isVideoMediaUrl(hero?.imageUrl) ? hero?.imageUrl : undefined)
 
   return (
     <main>
