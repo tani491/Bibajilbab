@@ -15,7 +15,11 @@ import {
 import { ProductGrid } from "@/components/commerce/product-grid"
 import { WhatsAppIcon } from "@/components/layout/whatsapp-icon"
 import { categories, collections, testimonials } from "@/lib/catalog"
-import { getStorefrontHero, getStorefrontProducts } from "@/lib/storefront-data"
+import {
+  getStorefrontCategoryImages,
+  getStorefrontHero,
+  getStorefrontProducts,
+} from "@/lib/storefront-data"
 import { buildGeneralWhatsAppUrl } from "@/lib/whatsapp"
 
 const trustItems = [
@@ -50,6 +54,7 @@ export default async function StorefrontHomePage() {
   const publicEnv = parsePublicEnv(process.env)
   const products = await getStorefrontProducts({ status: "published" })
   const hero = await getStorefrontHero()
+  const categoryImages = await getStorefrontCategoryImages(products)
   const fallbackImage = products[0]?.images[0]
   const featuredProducts = products.filter((product) => product.featured).slice(0, 4)
   const previewPopularProducts = [...products]
@@ -141,10 +146,21 @@ export default async function StorefrontHomePage() {
                 href={`/categories/${category.slug}`}
                 className="group overflow-hidden rounded-card border border-brand-border bg-white transition hover:-translate-y-0.5 hover:shadow-soft focus-visible:outline-none focus-visible:shadow-focus"
               >
+                {(() => {
+                  const fallbackProduct = products.find(
+                    (product) => product.categorySlug === category.slug,
+                  )
+                  const imageSrc =
+                    categoryImages[category.slug] ||
+                    categoryImages[fallbackProduct?.categorySlug ?? ""] ||
+                    fallbackProduct?.images[0]?.src ||
+                    category.imageSrc
+
+                  return (
                 <div className="relative aspect-[4/5] bg-brand-blush">
-                  {category.imageSrc ? (
+                  {imageSrc ? (
                     <Image
-                      src={category.imageSrc}
+                      src={imageSrc}
                       alt={category.imageAlt}
                       fill
                       sizes="(max-width: 1024px) 50vw, 25vw"
@@ -152,6 +168,8 @@ export default async function StorefrontHomePage() {
                     />
                   ) : null}
                 </div>
+                  )
+                })()}
                 <div className="p-4">
                   <h2 className="text-lg font-semibold text-brand-ink">{category.name}</h2>
                   <p className="mt-2 text-sm leading-6 text-brand-muted">{category.description}</p>

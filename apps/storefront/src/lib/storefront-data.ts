@@ -26,6 +26,42 @@ export interface StorefrontAnnouncement {
   logoUrl?: string
 }
 
+export async function getStorefrontCategoryImages(
+  products: StoreProduct[] = [],
+): Promise<Record<string, string>> {
+  try {
+    const snapshot = await getFirebaseAdminFirestore().collection("categories").get()
+    const images: Record<string, string> = {}
+
+    snapshot.docs.forEach((document) => {
+      const data = document.data()
+      const image = data.image
+      const url =
+        typeof image === "string"
+          ? image
+          : image && typeof image === "object" && typeof image.url === "string"
+            ? image.url
+            : undefined
+
+      if (url) {
+        images[document.id] = url
+        if (typeof data.slug === "string") {
+          images[data.slug] = url
+        }
+      } else if (typeof data.slug === "string") {
+        const fallbackProduct = products.find((product) => product.categorySlug === document.id)
+        if (fallbackProduct?.images[0]?.src) {
+          images[data.slug] = fallbackProduct.images[0].src
+        }
+      }
+    })
+
+    return images
+  } catch {
+    return {}
+  }
+}
+
 function mapImage(image: ProductImage): StoreProductImage {
   return {
     src: image.url,

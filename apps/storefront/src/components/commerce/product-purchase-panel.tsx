@@ -135,7 +135,9 @@ export function ProductPurchasePanel({
 
         {product.colors.length > 0 ? (
           <fieldset>
-            <legend className="mb-2 text-sm font-semibold text-brand-ink">Couleur</legend>
+            <legend className="mb-2 text-sm font-semibold text-brand-ink">
+              Couleur : {selectedColorLabel}
+            </legend>
             <div className="flex flex-wrap gap-2">
               {product.colors.map((color) => (
                 <button
@@ -153,7 +155,7 @@ export function ProductPurchasePanel({
                   )}
                 >
                   <span
-                    className="h-5 w-5 rounded-full border border-brand-border"
+                    className="h-8 w-8 rounded-full border-2 border-white shadow-sm ring-1 ring-brand-border"
                     style={{ backgroundColor: color.hex }}
                     aria-hidden="true"
                   />

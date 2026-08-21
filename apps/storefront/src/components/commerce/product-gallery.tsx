@@ -2,6 +2,7 @@
 
 import { Maximize2 } from "lucide-react"
 import { useState } from "react"
+import type { TouchEvent } from "react"
 
 import { Dialog, IconButton } from "@bibajilbab/ui"
 
@@ -11,11 +12,39 @@ import type { StoreProduct } from "@/lib/catalog"
 export function ProductGallery({ product }: { product: StoreProduct }) {
   const [activeIndex, setActiveIndex] = useState(0)
   const [zoomOpen, setZoomOpen] = useState(false)
+  const [touchStartX, setTouchStartX] = useState<number | null>(null)
   const activeImage = product.images[activeIndex] ?? product.images[0]
+
+  function handleTouchEnd(event: TouchEvent<HTMLDivElement>) {
+    const touch = event.changedTouches[0]
+
+    if (touchStartX === null || product.images.length < 2 || !touch) {
+      return
+    }
+
+    const delta = touch.clientX - touchStartX
+    if (Math.abs(delta) >= 40) {
+      setActiveIndex((current) =>
+        delta < 0
+          ? (current + 1) % product.images.length
+          : (current - 1 + product.images.length) % product.images.length,
+      )
+    }
+    setTouchStartX(null)
+  }
 
   return (
     <div className="space-y-4">
-      <div className="relative aspect-[4/5] overflow-hidden rounded-card border border-brand-border bg-brand-blush">
+      <div
+        className="relative aspect-[4/5] overflow-hidden rounded-card border border-brand-border bg-brand-blush"
+        onTouchStart={(event) => {
+          const touch = event.touches[0]
+          if (touch) {
+            setTouchStartX(touch.clientX)
+          }
+        }}
+        onTouchEnd={handleTouchEnd}
+      >
         {activeImage ? (
           <ResilientImage
             src={activeImage.src}
