@@ -63,8 +63,8 @@ export default async function StorefrontHomePage() {
 
   return (
     <main>
-      <section className="relative isolate min-h-[680px] overflow-hidden bg-brand-blush">
-        <div className="absolute inset-0 overflow-hidden">
+      <section className="relative isolate mx-4 min-h-[540px] overflow-hidden rounded-2xl bg-brand-blush md:mx-6 md:min-h-[580px] md:rounded-3xl lg:mx-8">
+        <div className="absolute inset-0 -z-10 overflow-hidden">
           {heroVideoUrl ? (
             <video
               autoPlay
@@ -87,27 +87,35 @@ export default async function StorefrontHomePage() {
             <div className="h-full w-full bg-brand-blush" aria-hidden="true" />
           )}
         </div>
-        <div className="absolute inset-0 bg-white/88 lg:w-[52%] lg:bg-white/85" />
-        <Container className="relative z-10 flex min-h-[680px] items-center justify-center py-16 lg:justify-start lg:py-16">
-          <div className="max-w-xl text-center lg:text-left">
-            <Badge variant="outline" className="bg-white/90">
+        <Container className="relative z-10 flex min-h-[540px] items-center justify-center py-6 md:min-h-[580px] md:py-8 lg:justify-start">
+          <div className="w-full max-w-xl rounded-2xl border border-white/50 bg-white/90 p-6 text-center shadow-lg backdrop-blur-md md:p-12 lg:w-1/2 lg:text-left">
+            <Badge
+              variant="outline"
+              className="mb-3 inline-block rounded-full border-transparent bg-brand-powder/80 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-brand-plum"
+            >
               BibaJilbab Sénégal
             </Badge>
-            <h1 className="mt-5 text-3xl font-semibold leading-tight text-brand-ink sm:text-5xl lg:text-6xl">
+            <h1 className="mb-3 text-2xl font-extrabold leading-tight text-slate-900 md:text-4xl">
               L'élégance dans la pudeur
             </h1>
-            <p className="mx-auto mt-5 max-w-lg text-sm leading-7 text-brand-muted sm:text-lg sm:leading-8 lg:mx-0">
+            <p className="mb-6 text-sm font-normal leading-relaxed text-slate-700 md:text-base">
               Découvrez nos djilbabs, khimars, tuniques et tenues de prière conçus pour accompagner votre quotidien et vos célébrations.
             </p>
-            <div className="mt-6 flex flex-col gap-3 sm:flex-row lg:mt-8">
-              <Link className={buttonStyles({ size: "lg" })} href="/catalogue">
+            <div className="flex flex-col gap-3 sm:flex-row">
+              <Link
+                className={buttonStyles({
+                  size: "lg",
+                  className: "flex items-center justify-center gap-2 rounded-xl bg-brand-plum px-5 py-3 font-medium shadow-md hover:bg-brand-plum/90",
+                })}
+                href="/catalogue"
+              >
                 <ShoppingBag aria-hidden="true" className="h-5 w-5" />
                 Découvrir la collection
               </Link>
               <a
                 className={buttonStyles({
                   size: "lg",
-                  className: "bg-[#25D366] text-white hover:bg-[#1FB85A]",
+                  className: "flex items-center justify-center gap-2 rounded-xl bg-emerald-600 px-5 py-3 font-medium shadow-md hover:bg-emerald-700",
                 })}
                 href={buildGeneralWhatsAppUrl()}
               >
