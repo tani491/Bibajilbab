@@ -4,7 +4,7 @@ import { Maximize2 } from "lucide-react"
 import { useState } from "react"
 import type { TouchEvent } from "react"
 
-import { Dialog, IconButton } from "@bibajilbab/ui"
+import { Dialog, IconButton, cn } from "@bibajilbab/ui"
 
 import { ResilientImage } from "@/components/resilient-image"
 import type { StoreProduct } from "@/lib/catalog"
@@ -70,7 +70,12 @@ export function ProductGallery({ product }: { product: StoreProduct }) {
               key={image.src}
               type="button"
               onClick={() => setActiveIndex(index)}
-              className="relative h-20 w-16 shrink-0 overflow-hidden rounded-card border border-brand-border bg-brand-blush focus-visible:outline-none focus-visible:shadow-focus"
+              className={cn(
+                "relative h-20 w-16 shrink-0 overflow-hidden rounded-card border-2 bg-brand-blush focus-visible:outline-none focus-visible:shadow-focus",
+                activeIndex === index
+                  ? "border-brand-plum ring-2 ring-brand-powder"
+                  : "border-brand-border",
+              )}
               aria-label={`Afficher l'image ${index + 1}`}
             >
               <ResilientImage

@@ -14,7 +14,7 @@ import {
 
 import { ProductGrid } from "@/components/commerce/product-grid"
 import { WhatsAppIcon } from "@/components/layout/whatsapp-icon"
-import { categories, collections, testimonials } from "@/lib/catalog"
+import { categories, testimonials } from "@/lib/catalog"
 import {
   getStorefrontCategoryImages,
   getStorefrontHero,
@@ -66,9 +66,6 @@ export default async function StorefrontHomePage() {
   const previewPopularProducts = [...products]
     .sort((a, b) => a.previewRank - b.previewRank)
     .slice(0, 4)
-  const tabaskiOrKorite = collections.filter((collection) =>
-    ["tabaski", "korite"].includes(collection.slug),
-  )
   const heroVideoUrl =
     hero?.videoUrl || (isVideoMediaUrl(hero?.imageUrl) ? hero?.imageUrl : undefined)
 
@@ -216,49 +213,6 @@ export default async function StorefrontHomePage() {
           />
           <div className="mt-8">
             <ProductGrid products={previewPopularProducts} />
-          </div>
-        </Container>
-      </section>
-
-      <section className="bg-brand-blush py-16">
-        <Container className="grid gap-8 lg:grid-cols-[0.95fr_1.05fr] lg:items-center">
-          <div>
-            <Badge variant="plum">Collection du moment</Badge>
-            <h2 className="mt-4 text-3xl font-semibold text-brand-ink">Essentiels du quotidien</h2>
-            <p className="mt-4 text-base leading-8 text-brand-muted">
-              Une base simple pour valoriser une collection : image, texte, sélection produit et
-              bouton WhatsApp pourront ensuite être gérés avec de vraies données.
-            </p>
-            <Link className={buttonStyles({ className: "mt-6" })} href="/collections/essentiels">
-              Explorer les essentiels
-            </Link>
-          </div>
-          <div className="grid gap-5 sm:grid-cols-2">
-            {tabaskiOrKorite.map((collection) => (
-              <Link
-                key={collection.slug}
-                href={`/collections/${collection.slug}`}
-                className="group overflow-hidden rounded-card border border-brand-border bg-white transition hover:-translate-y-0.5 hover:shadow-soft focus-visible:outline-none focus-visible:shadow-focus"
-              >
-                <div className="relative aspect-[4/5] bg-brand-blush">
-                  {collection.imageSrc ? (
-                    <Image
-                      src={collection.imageSrc}
-                      alt={collection.imageAlt}
-                      fill
-                      sizes="(max-width: 1024px) 50vw, 25vw"
-                      className="object-cover transition duration-300 group-hover:scale-105"
-                    />
-                  ) : null}
-                </div>
-                <div className="p-4">
-                  <h3 className="text-lg font-semibold text-brand-ink">{collection.name}</h3>
-                  <p className="mt-2 text-sm leading-6 text-brand-muted">
-                    {collection.description}
-                  </p>
-                </div>
-              </Link>
-            ))}
           </div>
         </Container>
       </section>
