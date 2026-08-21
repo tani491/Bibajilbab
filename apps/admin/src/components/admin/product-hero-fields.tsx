@@ -12,6 +12,7 @@ interface UploadResult {
   publicId: string
   width?: number | undefined
   height?: number | undefined
+  resourceType: string
 }
 
 type HeroMedia = ProductImage & {
@@ -36,8 +37,12 @@ function mediaJson(media: HeroMedia | null): string {
   return media ? JSON.stringify(media) : ""
 }
 
+function isVideoUrl(url: string): boolean {
+  return /\.(mp4|webm|mov)(?:$|[?#])/i.test(url) || /\/video\/upload(?:\/|$)/i.test(url)
+}
+
 function isVideoFile(file: File): boolean {
-  return file.type === "video/mp4" || file.type === "video/webm" || file.type === "video/quicktime"
+  return file.type.startsWith("video/") || isVideoUrl(file.name)
 }
 
 function createLocalMedia(file: File, previewUrl: string): HeroMedia {
@@ -98,7 +103,11 @@ export function ProductHeroFields({
       const payload: unknown = await response.json()
 
       if (!response.ok) {
-        return
+        const message =
+          payload && typeof payload === "object" && "error" in payload
+            ? (payload as { error?: unknown }).error
+            : undefined
+        throw new Error(typeof message === "string" ? message : "Téléversement impossible.")
       }
 
       if (!isUploadResponse(payload) || !payload.uploads[0]) {
@@ -114,10 +123,11 @@ export function ProductHeroFields({
         width: upload.width,
         height: upload.height,
         position: 0,
-        kind: isVideoFile(file) ? "video" : "image",
+        kind: upload.resourceType === "video" || isVideoUrl(upload.secureUrl) ? "video" : "image",
       })
-    } catch {
-      setMedia(localMedia)
+    } catch (uploadError) {
+      setMedia(null)
+      setError(uploadError instanceof Error ? uploadError.message : "Téléversement impossible.")
     } finally {
       setUploading(false)
     }
