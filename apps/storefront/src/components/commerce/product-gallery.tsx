@@ -15,6 +15,7 @@ export function ProductGallery({ product }: { product: StoreProduct }) {
   const [zoomOpen, setZoomOpen] = useState(false)
   const [touchStartX, setTouchStartX] = useState<number | null>(null)
   const activeImage = galleryImages[activeIndex] ?? galleryImages[0]
+  const activeImageUrl = activeImage?.src ?? ""
 
   function handleTouchEnd(event: TouchEvent<HTMLDivElement>) {
     const touch = event.changedTouches[0]
@@ -48,7 +49,7 @@ export function ProductGallery({ product }: { product: StoreProduct }) {
       >
         {activeImage ? (
           <ResilientImage
-            src={activeImage.src}
+            src={activeImageUrl}
             alt={activeImage.alt}
             sizes="(max-width: 1024px) 100vw, 50vw"
             className="object-cover"
@@ -71,7 +72,7 @@ export function ProductGallery({ product }: { product: StoreProduct }) {
               type="button"
               onClick={() => setActiveIndex(index)}
               className={cn(
-                "relative h-20 w-16 shrink-0 overflow-hidden rounded-card border-2 bg-brand-blush focus-visible:outline-none focus-visible:shadow-focus",
+                "relative h-20 w-16 shrink-0 cursor-pointer overflow-hidden rounded-card border-2 bg-brand-blush focus-visible:outline-none focus-visible:shadow-focus",
                 activeIndex === index
                   ? "border-brand-plum ring-2 ring-brand-powder"
                   : "border-brand-border",
