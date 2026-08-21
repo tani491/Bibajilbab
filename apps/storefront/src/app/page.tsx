@@ -56,7 +56,13 @@ export default async function StorefrontHomePage() {
   const hero = await getStorefrontHero()
   const categoryImages = await getStorefrontCategoryImages(products)
   const fallbackImage = products[0]?.images[0]
-  const featuredProducts = products.filter((product) => product.featured).slice(0, 4)
+  const newestProducts = [...products]
+    .sort((left, right) => right.createdAt.localeCompare(left.createdAt))
+    .slice(0, 4)
+  const featuredProducts = (products.filter((product) => product.featured).length > 0
+    ? products.filter((product) => product.featured)
+    : newestProducts
+  ).slice(0, 4)
   const previewPopularProducts = [...products]
     .sort((a, b) => a.previewRank - b.previewRank)
     .slice(0, 4)
@@ -186,7 +192,7 @@ export default async function StorefrontHomePage() {
             <SectionHeading
               eyebrow="Nouveautés"
               title="Sélection à découvrir"
-              description="Produits d'aperçu en attendant la connexion Firestore et les photos réelles."
+              description="Les dernières pièces publiées de la collection BibaJilbab."
             />
             <Link
               className={buttonStyles({ variant: "outline", className: "bg-white" })}

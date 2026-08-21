@@ -42,7 +42,7 @@ export default async function ProductsPage({
         title="Produits"
         description="Liste claire des articles, stocks indicatifs et statuts de publication."
         action={
-          <Link href="/products/new" className={buttonStyles()}>
+          <Link href="/products/new" className={buttonStyles({ className: "w-full sm:w-auto" })}>
             Nouveau produit
           </Link>
         }
@@ -50,24 +50,24 @@ export default async function ProductsPage({
 
       <Card className="mt-8">
         <CardContent>
-          <form className="grid gap-4 md:grid-cols-[1fr_220px_auto]">
+          <form className="flex w-full flex-wrap gap-4 md:grid md:grid-cols-[1fr_220px_auto]">
             <input
               name="q"
               defaultValue={params.q ?? ""}
               placeholder="Rechercher par nom, slug ou référence"
-              className="h-11 rounded-card border border-brand-border px-3 text-sm"
+              className="h-11 w-full min-w-0 rounded-card border border-brand-border px-3 text-sm md:w-auto"
             />
             <select
               name="status"
               defaultValue={params.status ?? ""}
-              className="h-11 rounded-card border border-brand-border px-3 text-sm"
+              className="h-11 w-full rounded-card border border-brand-border px-3 text-sm md:w-auto"
             >
               <option value="">Tous les statuts</option>
               <option value="draft">Brouillons</option>
               <option value="published">Publiés</option>
               <option value="archived">Archivés</option>
             </select>
-            <button className={buttonStyles()} type="submit">
+            <button className={buttonStyles({ className: "w-full md:w-auto" })} type="submit">
               Filtrer
             </button>
           </form>

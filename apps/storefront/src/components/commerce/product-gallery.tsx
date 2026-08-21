@@ -10,15 +10,16 @@ import { ResilientImage } from "@/components/resilient-image"
 import type { StoreProduct } from "@/lib/catalog"
 
 export function ProductGallery({ product }: { product: StoreProduct }) {
+  const galleryImages = product.images.slice(0, 4)
   const [activeIndex, setActiveIndex] = useState(0)
   const [zoomOpen, setZoomOpen] = useState(false)
   const [touchStartX, setTouchStartX] = useState<number | null>(null)
-  const activeImage = product.images[activeIndex] ?? product.images[0]
+  const activeImage = galleryImages[activeIndex] ?? galleryImages[0]
 
   function handleTouchEnd(event: TouchEvent<HTMLDivElement>) {
     const touch = event.changedTouches[0]
 
-    if (touchStartX === null || product.images.length < 2 || !touch) {
+    if (touchStartX === null || galleryImages.length < 2 || !touch) {
       return
     }
 
@@ -26,8 +27,8 @@ export function ProductGallery({ product }: { product: StoreProduct }) {
     if (Math.abs(delta) >= 40) {
       setActiveIndex((current) =>
         delta < 0
-          ? (current + 1) % product.images.length
-          : (current - 1 + product.images.length) % product.images.length,
+          ? (current + 1) % galleryImages.length
+          : (current - 1 + galleryImages.length) % galleryImages.length,
       )
     }
     setTouchStartX(null)
@@ -62,9 +63,9 @@ export function ProductGallery({ product }: { product: StoreProduct }) {
           onClick={() => setZoomOpen(true)}
         />
       </div>
-      {product.images.length > 1 ? (
+      {galleryImages.length > 1 ? (
         <div className="flex gap-3 overflow-x-auto pb-1">
-          {product.images.map((image, index) => (
+          {galleryImages.map((image, index) => (
             <button
               key={image.src}
               type="button"

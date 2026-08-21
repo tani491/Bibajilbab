@@ -19,6 +19,7 @@ const standardSizes: ProductSize[] = [
   { id: "56", label: "56" },
   { id: "58", label: "58" },
 ]
+const maxProductImages = 4
 
 interface UploadResult {
   secureUrl: string
@@ -206,8 +207,18 @@ export function ProductVisualFields({
 
   async function uploadFiles(fileList: FileList | File[]) {
     const files = Array.from(fileList)
+    const availableSlots = maxProductImages - images.length
 
     if (files.length === 0) {
+      return
+    }
+
+    if (files.length > availableSlots) {
+      setUploadError(
+        availableSlots > 0
+          ? `Ajoutez au maximum ${availableSlots} photo(s) supplémentaire(s).`
+          : "La galerie est limitée à 4 photos.",
+      )
       return
     }
 
@@ -359,17 +370,23 @@ export function ProductVisualFields({
             <ImagePlus aria-hidden="true" className="mx-auto h-8 w-8 text-brand-plum" />
             <p className="mt-3 text-sm font-medium text-brand-ink">Glisser-déposer les photos</p>
             <p className="mt-1 text-xs text-brand-muted">ou sélectionner des fichiers</p>
-            <label className="mt-4 inline-flex min-h-11 cursor-pointer items-center justify-center gap-2 rounded-card bg-brand-plum px-4 text-sm font-medium text-white transition hover:bg-brand-mauve focus-within:shadow-focus">
-              <UploadCloud aria-hidden="true" className="h-4 w-4" />
-              Choisir des images
-              <input
-                type="file"
-                accept="image/*,video/*"
-                multiple
-                onChange={handleFileInput}
-                className="sr-only"
-              />
-            </label>
+            {images.length < maxProductImages ? (
+              <label className="mt-4 inline-flex min-h-11 cursor-pointer items-center justify-center gap-2 rounded-card bg-brand-plum px-4 text-sm font-medium text-white transition hover:bg-brand-mauve focus-within:shadow-focus">
+                <UploadCloud aria-hidden="true" className="h-4 w-4" />
+                Choisir des images ({images.length}/{maxProductImages})
+                <input
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  onChange={handleFileInput}
+                  className="sr-only"
+                />
+              </label>
+            ) : (
+              <p className="mt-4 text-sm font-medium text-brand-plum">
+                Galerie complète : 4 photos maximum.
+              </p>
+            )}
           </div>
 
           {uploadError ? (

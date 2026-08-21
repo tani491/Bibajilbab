@@ -32,7 +32,7 @@ export function AdminShell({ session, children }: { session: AdminSession; child
   const visibleItems = navItems.filter((item) => canAccessSection(session.role, item.section))
 
   return (
-    <div className="min-h-screen bg-brand-blush">
+    <div className="min-h-screen w-full max-w-full overflow-x-hidden bg-brand-blush">
       <UnsavedChangesGuard />
       <aside className="fixed inset-y-0 left-0 hidden w-72 border-r border-brand-border bg-white lg:block">
         <div className="flex h-full flex-col">
@@ -98,7 +98,7 @@ export function AdminShell({ session, children }: { session: AdminSession; child
             ))}
           </div>
         </header>
-        <main className="px-4 py-6 sm:px-6 lg:px-8">{children}</main>
+        <main className="w-full max-w-full overflow-x-hidden px-4 py-6 sm:px-6 lg:px-8">{children}</main>
       </div>
     </div>
   )

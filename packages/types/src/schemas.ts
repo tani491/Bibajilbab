@@ -78,7 +78,7 @@ export const productSchema = z
     categoryId: documentIdSchema,
     collectionIds: z.array(documentIdSchema).default([]),
     tags: z.array(z.string().trim().min(1).max(40)).default([]),
-    images: z.array(productImageSchema).min(1),
+    images: z.array(productImageSchema).min(1).max(4),
     sizes: z.array(productSizeSchema).default([]),
     colors: z.array(productColorSchema).default([]),
     variants: z.array(productVariantSchema).default([]),
