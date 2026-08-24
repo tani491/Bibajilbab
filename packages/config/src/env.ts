@@ -12,6 +12,11 @@ const optionalUrl = z.preprocess(
   (value) => (value === "" ? undefined : value),
   z.string().url().optional(),
 )
+const defaultProductionStorefrontUrl = "https://bibajilbab.shop"
+const productionUrlWithStorefrontDefault = z.preprocess(
+  (value) => (value === "" || value === undefined ? defaultProductionStorefrontUrl : value),
+  z.string().url(),
+)
 const optionalBoolean = z
   .preprocess((value) => {
     if (typeof value === "boolean") {
@@ -67,7 +72,7 @@ function assertLocalOnlyFlag(
 }
 
 function defaultStorefrontUrl(appEnv: AppEnv): string {
-  return appEnv === "production" ? "https://bibajilbab.com" : "http://localhost:3000"
+  return appEnv === "production" ? defaultProductionStorefrontUrl : "http://localhost:3000"
 }
 
 function defaultAdminUrl(appEnv: AppEnv): string {
@@ -141,8 +146,8 @@ export const rawServerEnvSchema = z.object({
 })
 
 export const productionPublicEnvSchema = z.object({
-  NEXT_PUBLIC_SITE_URL: z.string().url(),
-  NEXT_PUBLIC_STOREFRONT_URL: z.string().url(),
+  NEXT_PUBLIC_SITE_URL: productionUrlWithStorefrontDefault,
+  NEXT_PUBLIC_STOREFRONT_URL: productionUrlWithStorefrontDefault,
   NEXT_PUBLIC_ADMIN_URL: z.string().url(),
   NEXT_PUBLIC_WHATSAPP_NUMBER: requiredString,
   NEXT_PUBLIC_INSTAGRAM_URL: z.string().url(),

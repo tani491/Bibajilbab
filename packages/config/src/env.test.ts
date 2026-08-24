@@ -23,7 +23,7 @@ describe("environment configuration", () => {
     })
 
     expect(env.demoDataEnabled).toBe(false)
-    expect(env.urls.storefront).toBe("https://bibajilbab.com")
+    expect(env.urls.storefront).toBe("https://bibajilbab.shop")
   })
 
   it("enables demo admin credentials only in local development", () => {
