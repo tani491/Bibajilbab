@@ -1,63 +1,50 @@
-import type { MetadataRoute } from "next"
+import { MetadataRoute } from "next"
 
-import { parsePublicEnv } from "@bibajilbab/config"
+import { getAllProducts } from "@/lib/firestore/products"
 
-import { categories, collections } from "@/lib/catalog"
-import { getStorefrontProducts } from "@/lib/storefront-data"
-
-const staticRoutes = [
-  "/",
-  "/catalogue",
-  "/recherche",
-  "/favoris",
-  "/panier",
-  "/a-propos",
-  "/contact",
-  "/faq",
-  "/guide-des-tailles",
-  "/livraison",
-  "/retours-et-echanges",
-  "/confidentialite",
-  "/conditions-generales",
-  "/mentions-legales",
-]
-
-export const revalidate = 3600
+type SitemapProduct = {
+  id?: string
+  slug?: string
+  updatedAt?: string | number | Date
+}
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const publicEnv = parsePublicEnv(process.env)
-  const now = new Date()
-  const staticRouteEntries = staticRoutes.map((route) => ({
-    route,
-    lastModified: now,
-    priority: route === "/" ? 1 : 0.6,
-  }))
-  const categoryRouteEntries = categories.map((category) => ({
-    route: `/categories/${category.slug}`,
-    lastModified: now,
-    priority: 0.8,
-  }))
-  const collectionRouteEntries = collections.map((collection) => ({
-    route: `/collections/${collection.slug}`,
-    lastModified: now,
-    priority: 0.8,
-  }))
-  const products = await getStorefrontProducts({ status: "published" })
-  const productRouteEntries = products.map((product) => ({
-    route: `/produits/${product.slug}`,
-    lastModified: new Date(product.updatedAt),
-    priority: 0.7,
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://bibajilbab.shop"
+  let productUrls: MetadataRoute.Sitemap = []
+
+  try {
+    const products: unknown = await getAllProducts()
+
+    if (Array.isArray(products)) {
+      productUrls = products.map((product: SitemapProduct) => ({
+        url: `${baseUrl}/produits/${product.slug || product.id}`,
+        lastModified: new Date(product.updatedAt || Date.now()),
+        changeFrequency: "daily",
+        priority: 0.8,
+      }))
+    }
+  } catch (error) {
+    console.error("Erreur sitemap:", error)
+  }
+
+  const staticRoutes: MetadataRoute.Sitemap = [
+    "",
+    "/catalogue",
+    "/a-propos",
+    "/contact",
+    "/faq",
+    "/guide-des-tailles",
+    "/livraison",
+    "/retours-et-echanges",
+    "/mentions-legales",
+    "/conditions-generales",
+    "/confidentialite",
+  ].map((route) => ({
+    url: `${baseUrl}${route}`,
+    lastModified: new Date(),
+    changeFrequency: "weekly",
+    priority: route === "" ? 1.0 : 0.6,
   }))
 
-  return [
-    ...staticRouteEntries,
-    ...categoryRouteEntries,
-    ...collectionRouteEntries,
-    ...productRouteEntries,
-  ].map(({ route, lastModified, priority }) => ({
-      url: new URL(route, publicEnv.urls.site).toString(),
-      lastModified,
-      changeFrequency: "daily",
-      priority,
-    }))
+  return [...staticRoutes, ...productUrls]
 }
