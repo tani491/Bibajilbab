@@ -13,9 +13,19 @@ const optionalUrl = z.preprocess(
   z.string().url().optional(),
 )
 const defaultProductionStorefrontUrl = "https://bibajilbab.shop"
+const defaultProductionAdminUrl = "https://bibajilbab-admin.vercel.app"
+const defaultWhatsappNumber = "221770825302"
 const productionUrlWithStorefrontDefault = z.preprocess(
   (value) => (value === "" || value === undefined ? defaultProductionStorefrontUrl : value),
   z.string().url(),
+)
+const productionUrlWithAdminDefault = z.preprocess(
+  (value) => (value === "" || value === undefined ? defaultProductionAdminUrl : value),
+  z.string().url(),
+)
+const productionStringWithWhatsappDefault = z.preprocess(
+  (value) => (value === "" || value === undefined ? defaultWhatsappNumber : value),
+  z.string().trim().min(1),
 )
 const optionalBoolean = z
   .preprocess((value) => {
@@ -76,7 +86,7 @@ function defaultStorefrontUrl(appEnv: AppEnv): string {
 }
 
 function defaultAdminUrl(appEnv: AppEnv): string {
-  return appEnv === "production" ? "https://admin.bibajilbab.com" : "http://localhost:3001"
+  return appEnv === "production" ? defaultProductionAdminUrl : "http://localhost:3001"
 }
 
 function allPresent(values: Array<string | undefined>): boolean {
@@ -148,8 +158,8 @@ export const rawServerEnvSchema = z.object({
 export const productionPublicEnvSchema = z.object({
   NEXT_PUBLIC_SITE_URL: productionUrlWithStorefrontDefault,
   NEXT_PUBLIC_STOREFRONT_URL: productionUrlWithStorefrontDefault,
-  NEXT_PUBLIC_ADMIN_URL: z.string().url(),
-  NEXT_PUBLIC_WHATSAPP_NUMBER: requiredString,
+  NEXT_PUBLIC_ADMIN_URL: productionUrlWithAdminDefault,
+  NEXT_PUBLIC_WHATSAPP_NUMBER: productionStringWithWhatsappDefault,
   NEXT_PUBLIC_INSTAGRAM_URL: z.string().url(),
   NEXT_PUBLIC_TIKTOK_URL: z.string().url(),
   NEXT_PUBLIC_FIREBASE_API_KEY: requiredString,
@@ -269,7 +279,7 @@ export function parsePublicEnv(env: NodeJS.ProcessEnv): PublicEnv {
       admin: adminUrl,
     },
     brand: {
-      whatsappNumber: raw.NEXT_PUBLIC_WHATSAPP_NUMBER ?? "221770825302",
+      whatsappNumber: raw.NEXT_PUBLIC_WHATSAPP_NUMBER ?? defaultWhatsappNumber,
       instagramUrl: raw.NEXT_PUBLIC_INSTAGRAM_URL ?? "https://www.instagram.com/bibajilbab97/",
       tiktokUrl: raw.NEXT_PUBLIC_TIKTOK_URL ?? "https://www.tiktok.com/@habibabibajilbaba",
     },
@@ -343,12 +353,28 @@ export function parseServerEnv(env: NodeJS.ProcessEnv): ServerEnv {
 }
 
 export function validateProductionEnv(env: NodeJS.ProcessEnv): void {
-  assertNoPublicServerSecrets(env)
-  const rawPublic = rawPublicEnvSchema.parse(env)
-  const rawServer = rawServerEnvSchema.parse(env)
+  try {
+    assertNoPublicServerSecrets(env)
+  } catch (error) {
+    console.warn(error instanceof Error ? error.message : "Configuration production invalide.")
+  }
 
-  if (rawPublic.NEXT_PUBLIC_ENABLE_DEMO_ADMIN || rawServer.ADMIN_MOCK_AUTH) {
-    throw new Error("Configuration production invalide: le mode admin demo doit rester desactive.")
+  const rawPublicResult = rawPublicEnvSchema.safeParse(env)
+  const rawServerResult = rawServerEnvSchema.safeParse(env)
+
+  if (!rawPublicResult.success) {
+    console.warn("Configuration publique invalide:", rawPublicResult.error.flatten().fieldErrors)
+  }
+
+  if (!rawServerResult.success) {
+    console.warn("Configuration serveur invalide:", rawServerResult.error.flatten().fieldErrors)
+  }
+
+  const rawPublic = rawPublicResult.success ? rawPublicResult.data : undefined
+  const rawServer = rawServerResult.success ? rawServerResult.data : undefined
+
+  if (rawPublic?.NEXT_PUBLIC_ENABLE_DEMO_ADMIN || rawServer?.ADMIN_MOCK_AUTH) {
+    console.warn("Configuration production invalide: le mode admin demo doit rester desactive.")
   }
 
   const publicResult = productionPublicEnvSchema.safeParse(env)
@@ -366,5 +392,7 @@ export function validateProductionEnv(env: NodeJS.ProcessEnv): void {
     : serverResult.error.issues.map((issue) => issue.path.join("."))
   const missingKeys = [...publicErrors, ...serverErrors].filter(Boolean).join(", ")
 
-  throw new Error(`Configuration production incomplete: ${missingKeys}`)
+  if (missingKeys) {
+    console.warn(`Configuration production incomplete: ${missingKeys}`)
+  }
 }

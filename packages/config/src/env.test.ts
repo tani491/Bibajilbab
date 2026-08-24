@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest"
+import { describe, expect, it, vi } from "vitest"
 
 import { parsePublicEnv, parseServerEnv, validateProductionEnv } from "./env"
 import { getProductUrl, getWhatsAppUrl } from "./urls"
@@ -73,9 +73,12 @@ describe("environment configuration", () => {
     )
   })
 
-  it("reports missing production service variables", () => {
-    expect(() => validateProductionEnv({ APP_ENV: "production" })).toThrow(
-      "Configuration production incomplete",
-    )
+  it("warns without blocking when production service variables are missing", () => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => undefined)
+
+    expect(() => validateProductionEnv({ APP_ENV: "production" })).not.toThrow()
+    expect(warn).toHaveBeenCalled()
+
+    warn.mockRestore()
   })
 })

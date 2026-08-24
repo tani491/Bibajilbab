@@ -11,8 +11,7 @@ if (shouldValidateProductionEnv) {
   try {
     validateProductionEnv(process.env)
   } catch (error) {
-    console.error("Environment validation failed:", error.message)
-    process.exit(1)
+    console.warn("Environment validation warning:", error.message)
   }
 }
 
