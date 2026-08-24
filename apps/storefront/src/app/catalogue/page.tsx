@@ -20,7 +20,7 @@ export const metadata = createPageMetadata({
   path: "/catalogue",
 })
 
-export const dynamic = "force-dynamic"
+export const revalidate = 60
 
 export default async function CataloguePage({
   searchParams,
@@ -32,10 +32,18 @@ export default async function CataloguePage({
   const filteredProducts = getFilteredProducts(allProducts, filters)
   const paginated = paginateProducts(filteredProducts, filters.page, 8)
   const sizeOptions = Array.from(
-    new Map(allProducts.flatMap((product) => product.sizes).map((item) => [item.id, { value: item.id, label: item.label }])).values(),
+    new Map(
+      allProducts
+        .flatMap((product) => product.sizes)
+        .map((item) => [item.id, { value: item.id, label: item.label }]),
+    ).values(),
   )
   const colorOptions = Array.from(
-    new Map(allProducts.flatMap((product) => product.colors).map((item) => [item.id, { value: item.id, label: item.name }])).values(),
+    new Map(
+      allProducts
+        .flatMap((product) => product.colors)
+        .map((item) => [item.id, { value: item.id, label: item.name }]),
+    ).values(),
   )
 
   return (

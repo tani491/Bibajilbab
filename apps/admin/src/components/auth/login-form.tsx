@@ -145,7 +145,7 @@ export function LoginForm({ nextPath }: LoginFormProps) {
     mode: "onChange",
     defaultValues: {
       email: demoAdmin.enabled ? demoAdmin.email : "",
-      password: demoAdmin.enabled ? demoAdmin.password : "",
+      password: "",
     },
   })
 
@@ -160,9 +160,9 @@ export function LoginForm({ nextPath }: LoginFormProps) {
 
     reset({
       email: demoAdmin.email,
-      password: demoAdmin.password,
+      password: "",
     })
-  }, [demoAdmin.email, demoAdmin.enabled, demoAdmin.password, reset])
+  }, [demoAdmin.email, demoAdmin.enabled, reset])
 
   async function submitLogin(values: LoginFormValues) {
     try {

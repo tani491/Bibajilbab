@@ -1,13 +1,13 @@
 import "server-only"
 
+import { unstable_cache } from "next/cache"
+
+import { getOptimizedCloudinaryImageSrc } from "@bibajilbab/config"
 import { productImageSchema, productSchema } from "@bibajilbab/types"
 import type { ProductImage } from "@bibajilbab/types"
 
-import { getFirebaseAdminFirestore, getFirebaseAdminStatus } from "./firebase/admin"
-import {
-  type StoreProduct,
-  type StoreProductImage,
-} from "./catalog"
+import { getFirebaseAdminFirestore } from "./firebase/admin"
+import { type StoreProduct, type StoreProductImage } from "./catalog"
 
 export interface StorefrontHero {
   eyebrow: string
@@ -44,9 +44,10 @@ export async function getStorefrontCategoryImages(
             : undefined
 
       if (url) {
-        images[document.id] = url
+        const optimizedUrl = getOptimizedCloudinaryImageSrc(url) ?? url
+        images[document.id] = optimizedUrl
         if (typeof data.slug === "string") {
-          images[data.slug] = url
+          images[data.slug] = optimizedUrl
         }
       } else if (typeof data.slug === "string") {
         const fallbackProduct = products.find((product) => product.categorySlug === document.id)
@@ -64,7 +65,7 @@ export async function getStorefrontCategoryImages(
 
 function mapImage(image: ProductImage): StoreProductImage {
   return {
-    src: image.url,
+    src: getOptimizedCloudinaryImageSrc(image.url) ?? image.url,
     alt: image.alt,
     width: typeof image.width === "number" ? image.width : 1200,
     height: typeof image.height === "number" ? image.height : 1500,
@@ -102,52 +103,57 @@ function normalizeImageCandidate(value: unknown, fallbackAlt: string, position: 
 
 function toStoreProduct(value: unknown): StoreProduct | null {
   const source = value && typeof value === "object" ? value : null
-  const normalizedValue =
-    source
-      ? {
-          ...source,
-          status:
-            !("status" in source) || source.status === "active" || source.status === "published"
-              ? "published"
-              : source.status,
-        }
-      : value
-  const candidate = normalizedValue && typeof normalizedValue === "object"
-    ? (() => {
-        const productRecord = normalizedValue as Record<string, unknown>
-        const name = typeof productRecord.name === "string" ? productRecord.name : "Produit BibaJilbab"
-        const rawImages = Array.isArray(productRecord.images)
-          ? productRecord.images
-          : [productRecord.coverImage, productRecord.imageUrl].filter(Boolean)
-        const images = rawImages
-          .map((image, position) => normalizeImageCandidate(image, name, position))
-          .filter((image): image is Record<string, unknown> => Boolean(image))
-          .filter((image) => productImageSchema.safeParse(image).success)
+  const normalizedValue = source
+    ? {
+        ...source,
+        status:
+          !("status" in source) || source.status === "active" || source.status === "published"
+            ? "published"
+            : source.status,
+      }
+    : value
+  const candidate =
+    normalizedValue && typeof normalizedValue === "object"
+      ? (() => {
+          const productRecord = normalizedValue as Record<string, unknown>
+          const name =
+            typeof productRecord.name === "string" ? productRecord.name : "Produit BibaJilbab"
+          const rawImages = Array.isArray(productRecord.images)
+            ? productRecord.images
+            : [productRecord.coverImage, productRecord.imageUrl].filter(Boolean)
+          const images = rawImages
+            .map((image, position) => normalizeImageCandidate(image, name, position))
+            .filter((image): image is Record<string, unknown> => Boolean(image))
+            .filter((image) => productImageSchema.safeParse(image).success)
 
-        return {
-        ...productRecord,
-        collectionIds: Array.isArray(productRecord.collectionIds)
-          ? productRecord.collectionIds
-          : Array.isArray(productRecord.collectionSlugs)
-            ? productRecord.collectionSlugs
-            : [],
-        tags: Array.isArray(productRecord.tags) ? productRecord.tags : [],
-        images,
-        sizes: Array.isArray(productRecord.sizes) ? productRecord.sizes : [],
-        colors: Array.isArray(productRecord.colors) ? productRecord.colors : [],
-        variants: Array.isArray(productRecord.variants) ? productRecord.variants : [],
-        currency: productRecord.currency ?? "XOF",
-        featured: productRecord.featured ?? false,
-        seo: productRecord.seo ?? {
-          metaTitle: name,
-          metaDescription: typeof productRecord.shortDescription === "string" ? productRecord.shortDescription : "Collection BibaJilbab",
-          noIndex: false,
-        },
-        createdAt: productRecord.createdAt ?? new Date(0).toISOString(),
-        updatedAt: productRecord.updatedAt ?? productRecord.createdAt ?? new Date(0).toISOString(),
-        }
-      })()
-    : normalizedValue
+          return {
+            ...productRecord,
+            collectionIds: Array.isArray(productRecord.collectionIds)
+              ? productRecord.collectionIds
+              : Array.isArray(productRecord.collectionSlugs)
+                ? productRecord.collectionSlugs
+                : [],
+            tags: Array.isArray(productRecord.tags) ? productRecord.tags : [],
+            images,
+            sizes: Array.isArray(productRecord.sizes) ? productRecord.sizes : [],
+            colors: Array.isArray(productRecord.colors) ? productRecord.colors : [],
+            variants: Array.isArray(productRecord.variants) ? productRecord.variants : [],
+            currency: productRecord.currency ?? "XOF",
+            featured: productRecord.featured ?? false,
+            seo: productRecord.seo ?? {
+              metaTitle: name,
+              metaDescription:
+                typeof productRecord.shortDescription === "string"
+                  ? productRecord.shortDescription
+                  : "Collection BibaJilbab",
+              noIndex: false,
+            },
+            createdAt: productRecord.createdAt ?? new Date(0).toISOString(),
+            updatedAt:
+              productRecord.updatedAt ?? productRecord.createdAt ?? new Date(0).toISOString(),
+          }
+        })()
+      : normalizedValue
   const parsed = productSchema.safeParse(candidate)
 
   if (!parsed.success) {
@@ -224,34 +230,44 @@ function toIsoString(value: string | Date | { seconds: number; nanoseconds: numb
   return new Date(value.seconds * 1000 + Math.floor(value.nanoseconds / 1_000_000)).toISOString()
 }
 
-export async function getStorefrontProducts({
-  status = "published",
-}: { status?: "published" | "active" } = {}): Promise<StoreProduct[]> {
+async function fetchStorefrontProducts(status: "published" | "active"): Promise<StoreProduct[]> {
   try {
-    const firebaseStatus = getFirebaseAdminStatus()
-    console.log("[Storefront] Firebase source:", firebaseStatus)
     const snapshot = await getFirebaseAdminFirestore().collection("products").get()
-    console.log("[Storefront] Raw Firestore docs found:", snapshot.docs.length)
     const products = snapshot.docs
       .map((document) => {
         const value = { id: document.id, ...document.data() }
         const product = toStoreProduct(value)
-
-        if (!product || (status === "active" && product.status !== "published")) {
-          console.error(`[storefront] Produit Firestore ignore: ${document.id}`)
-        }
 
         return product
       })
       .filter((product): product is StoreProduct => product !== null)
       .filter((product) => status === "active" || product.status === status)
 
-    console.log("[Storefront] Published products accepted:", products.length)
     return products
   } catch (error) {
-    console.error("[Storefront Firestore Error]", error)
+    if (process.env.NODE_ENV !== "production") {
+      console.error("[Storefront Firestore Error]", error)
+    }
     return []
   }
+}
+
+const getPublishedProductsCached = unstable_cache(
+  () => fetchStorefrontProducts("published"),
+  ["storefront-products-published"],
+  { revalidate: 60, tags: ["storefront-products"] },
+)
+
+const getActiveProductsCached = unstable_cache(
+  () => fetchStorefrontProducts("active"),
+  ["storefront-products-active"],
+  { revalidate: 60, tags: ["storefront-products"] },
+)
+
+export async function getStorefrontProducts({
+  status = "published",
+}: { status?: "published" | "active" } = {}): Promise<StoreProduct[]> {
+  return status === "active" ? getActiveProductsCached() : getPublishedProductsCached()
 }
 
 export async function getStorefrontProductBySlug(slug: string): Promise<StoreProduct | undefined> {
@@ -259,7 +275,7 @@ export async function getStorefrontProductBySlug(slug: string): Promise<StorePro
   return products.find((product) => product.slug === slug)
 }
 
-export async function getStorefrontHero(): Promise<StorefrontHero | null> {
+async function fetchStorefrontHero(): Promise<StorefrontHero | null> {
   try {
     const db = getFirebaseAdminFirestore()
     const document = await db.collection("homepageSections").doc("main-hero").get()
@@ -299,9 +315,13 @@ export async function getStorefrontHero(): Promise<StorefrontHero | null> {
     const videoUrl =
       typeof data.heroVideoUrl === "string"
         ? data.heroVideoUrl
-        : typeof referencedMedia?.kind === "string" && referencedMedia.kind === "video" && typeof referencedMedia.url === "string"
+        : typeof referencedMedia?.kind === "string" &&
+            referencedMedia.kind === "video" &&
+            typeof referencedMedia.url === "string"
           ? referencedMedia.url
-          : typeof settingsMedia?.kind === "string" && settingsMedia.kind === "video" && typeof settingsMedia.url === "string"
+          : typeof settingsMedia?.kind === "string" &&
+              settingsMedia.kind === "video" &&
+              typeof settingsMedia.url === "string"
             ? settingsMedia.url
             : undefined
     const status = data.status ?? referencedMedia?.status ?? settingsMedia?.status
@@ -335,7 +355,10 @@ export async function getStorefrontHero(): Promise<StorefrontHero | null> {
             : "Découvrez nos djilbabs, khimars, tuniques et tenues de prière.",
       ctaLabel: typeof data.ctaLabel === "string" ? data.ctaLabel : "Découvrir la collection",
       ctaHref: typeof data.ctaHref === "string" ? data.ctaHref : "/catalogue",
-      imageUrl: typeof media?.url === "string" ? media.url : "",
+      imageUrl:
+        typeof media?.url === "string"
+          ? (getOptimizedCloudinaryImageSrc(media.url) ?? media.url)
+          : "",
       imageAlt: typeof media?.alt === "string" ? media.alt : "Collection BibaJilbab",
       ...(videoUrl ? { videoUrl } : {}),
     }
@@ -344,7 +367,16 @@ export async function getStorefrontHero(): Promise<StorefrontHero | null> {
   }
 }
 
-export async function getStorefrontAnnouncement(): Promise<StorefrontAnnouncement | null> {
+const getStorefrontHeroCached = unstable_cache(fetchStorefrontHero, ["storefront-hero"], {
+  revalidate: 60,
+  tags: ["storefront-homepage"],
+})
+
+export async function getStorefrontHero(): Promise<StorefrontHero | null> {
+  return getStorefrontHeroCached()
+}
+
+async function fetchStorefrontAnnouncement(): Promise<StorefrontAnnouncement | null> {
   try {
     const db = getFirebaseAdminFirestore()
     const document = await db.collection("siteSettings").doc("default").get()
@@ -355,8 +387,8 @@ export async function getStorefrontAnnouncement(): Promise<StorefrontAnnouncemen
 
     if (
       (!document.exists && !generalDocument.exists) ||
-      (typeof announcement !== "string" || !announcement.trim()) &&
-        (typeof logoUrl !== "string" || !logoUrl.trim())
+      ((typeof announcement !== "string" || !announcement.trim()) &&
+        (typeof logoUrl !== "string" || !logoUrl.trim()))
     ) {
       return null
     }
@@ -372,4 +404,17 @@ export async function getStorefrontAnnouncement(): Promise<StorefrontAnnouncemen
   } catch {
     return null
   }
+}
+
+const getStorefrontAnnouncementCached = unstable_cache(
+  fetchStorefrontAnnouncement,
+  ["storefront-announcement"],
+  {
+    revalidate: 60,
+    tags: ["storefront-settings"],
+  },
+)
+
+export async function getStorefrontAnnouncement(): Promise<StorefrontAnnouncement | null> {
+  return getStorefrontAnnouncementCached()
 }

@@ -6,11 +6,7 @@ import { Container, SectionHeading } from "@bibajilbab/ui/server"
 import { Breadcrumbs } from "@/components/commerce/breadcrumbs"
 import { CatalogFiltersForm } from "@/components/commerce/catalog-filters-form"
 import { ProductGrid } from "@/components/commerce/product-grid"
-import {
-  categories,
-  createPageMetadata,
-  getCategoryBySlug,
-} from "@/lib/catalog"
+import { categories, createPageMetadata, getCategoryBySlug } from "@/lib/catalog"
 import { getFilteredProducts, parseCatalogFilters, type SearchParamRecord } from "@/lib/filters"
 import { getStorefrontProducts } from "@/lib/storefront-data"
 
@@ -23,7 +19,7 @@ export function generateStaticParams() {
   return categories.map((category) => ({ slug: category.slug }))
 }
 
-export const dynamic = "force-dynamic"
+export const revalidate = 60
 
 export async function generateMetadata({ params }: CategoryPageProps): Promise<Metadata> {
   const { slug } = await params
@@ -34,8 +30,8 @@ export async function generateMetadata({ params }: CategoryPageProps): Promise<M
   }
 
   return createPageMetadata({
-    title: category.name,
-    description: category.description,
+    title: `${category.name} a Dakar`,
+    description: `Decouvrez nos ${category.name.toLowerCase()} BibaJilbab a Dakar: ${category.description} Commande simple sur WhatsApp et livraison au Senegal.`,
     path: `/categories/${category.slug}`,
   })
 }
@@ -52,10 +48,18 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
   const products = await getStorefrontProducts({ status: "published" })
   const filteredProducts = getFilteredProducts(products, filters)
   const sizeOptions = Array.from(
-    new Map(products.flatMap((product) => product.sizes).map((item) => [item.id, { value: item.id, label: item.label }])).values(),
+    new Map(
+      products
+        .flatMap((product) => product.sizes)
+        .map((item) => [item.id, { value: item.id, label: item.label }]),
+    ).values(),
   )
   const colorOptions = Array.from(
-    new Map(products.flatMap((product) => product.colors).map((item) => [item.id, { value: item.id, label: item.name }])).values(),
+    new Map(
+      products
+        .flatMap((product) => product.colors)
+        .map((item) => [item.id, { value: item.id, label: item.name }]),
+    ).values(),
   )
 
   return (

@@ -82,6 +82,22 @@ function normalizePrivateKey(value: string | undefined): string | undefined {
   return value?.replace(/\\n/g, "\n")
 }
 
+function assertNoPublicServerSecrets(env: NodeJS.ProcessEnv): void {
+  const leakedKeys = Object.keys(env).filter(
+    (key) =>
+      key.startsWith("NEXT_PUBLIC_") &&
+      /(^|_)(PRIVATE|SECRET|TOKEN|PASSWORD)(_|$)|PRIVATE_KEY/i.test(key) &&
+      key !== "NEXT_PUBLIC_ENABLE_DEMO_ADMIN" &&
+      key !== "NEXT_PUBLIC_DEMO_ADMIN_EMAIL",
+  )
+
+  if (leakedKeys.length > 0) {
+    throw new Error(
+      `Configuration production invalide: variables sensibles publiques detectees (${leakedKeys.join(", ")}).`,
+    )
+  }
+}
+
 export const rawPublicEnvSchema = z.object({
   APP_ENV: appEnvSchema.optional(),
   NEXT_PUBLIC_APP_ENV: appEnvSchema.optional(),
@@ -93,7 +109,6 @@ export const rawPublicEnvSchema = z.object({
   NEXT_PUBLIC_TIKTOK_URL: optionalUrl,
   NEXT_PUBLIC_ENABLE_DEMO_ADMIN: optionalBoolean,
   NEXT_PUBLIC_DEMO_ADMIN_EMAIL: optionalString,
-  NEXT_PUBLIC_DEMO_ADMIN_PASSWORD: optionalString,
   NEXT_PUBLIC_ENABLE_DEMO_DATA: optionalBoolean,
   NEXT_PUBLIC_USE_FIREBASE_EMULATORS: optionalBoolean,
   NEXT_PUBLIC_FIRESTORE_EMULATOR_HOST: optionalString,
@@ -168,7 +183,6 @@ export interface PublicEnv {
   demoAdmin: {
     enabled: boolean
     email: string
-    password: string
   }
   demoDataEnabled: boolean
   firebase: {
@@ -257,7 +271,6 @@ export function parsePublicEnv(env: NodeJS.ProcessEnv): PublicEnv {
     demoAdmin: {
       enabled: demoAdminEnabled,
       email: raw.NEXT_PUBLIC_DEMO_ADMIN_EMAIL ?? "admin@bibajilbab.com",
-      password: raw.NEXT_PUBLIC_DEMO_ADMIN_PASSWORD ?? "BibaJilbabLocal2026!",
     },
     demoDataEnabled: appEnv !== "production" && requestedDemoData,
     firebase: {
@@ -325,6 +338,7 @@ export function parseServerEnv(env: NodeJS.ProcessEnv): ServerEnv {
 }
 
 export function validateProductionEnv(env: NodeJS.ProcessEnv): void {
+  assertNoPublicServerSecrets(env)
   const rawPublic = rawPublicEnvSchema.parse(env)
   const rawServer = rawServerEnvSchema.parse(env)
 

@@ -4,7 +4,6 @@ import { Button } from "@bibajilbab/ui"
 import { ErrorState } from "@bibajilbab/ui/server"
 
 export default function AdminErrorPage({
-  error,
   reset,
 }: {
   error: Error & { digest?: string }
@@ -15,7 +14,7 @@ export default function AdminErrorPage({
       <div className="max-w-lg rounded-card border border-brand-border bg-white p-6">
         <ErrorState
           title="Erreur administrative"
-          description={error.message || "Une erreur privée s'est produite."}
+          description="Une erreur s'est produite. Réessayez dans quelques instants."
         />
         <div className="mt-5 flex justify-center">
           <Button type="button" onClick={reset}>

@@ -6,10 +6,13 @@ const commonConnectSources = [
   "https://*.googleapis.com",
   "https://*.firebaseio.com",
   "https://api.cloudinary.com",
-  "http://localhost:*",
-  "http://127.0.0.1:*",
-  "ws://localhost:*",
-  "ws://127.0.0.1:*",
+]
+
+const preconnectSources = [
+  { key: "Link", value: "<https://identitytoolkit.googleapis.com>; rel=preconnect; crossorigin" },
+  { key: "Link", value: "<https://securetoken.googleapis.com>; rel=preconnect; crossorigin" },
+  { key: "Link", value: "<https://firestore.googleapis.com>; rel=preconnect; crossorigin" },
+  { key: "Link", value: "<https://res.cloudinary.com>; rel=preconnect; crossorigin" },
 ]
 
 function contentSecurityPolicy({
@@ -23,12 +26,28 @@ function contentSecurityPolicy({
         "https://wa.me",
         "https://www.instagram.com",
         "https://www.tiktok.com",
+        "https://www.google-analytics.com",
+        "https://www.googletagmanager.com",
       ]
+
+  if (isDevelopment) {
+    connectSources.push(
+      "http://localhost:*",
+      "http://127.0.0.1:*",
+      "ws://localhost:*",
+      "ws://127.0.0.1:*",
+    )
+  }
 
   const scriptSources = ["'self'", "'unsafe-inline'"]
 
+  // React/Next development tooling requires eval for stack reconstruction and HMR.
   if (isDevelopment) {
     scriptSources.push("'unsafe-eval'")
+  }
+
+  if (!admin) {
+    scriptSources.push("https://www.googletagmanager.com")
   }
 
   const directives = [
@@ -62,6 +81,8 @@ export function createSecurityHeaders(options = {}) {
       key: "Strict-Transport-Security",
       value: "max-age=63072000; includeSubDomains; preload",
     },
+    // Add preconnect headers for performance on critical external domains
+    ...preconnectSources,
   ]
 
   if (options.admin) {

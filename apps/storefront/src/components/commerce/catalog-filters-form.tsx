@@ -6,22 +6,6 @@ import { Button } from "@bibajilbab/ui/server"
 import { categories, collections } from "@/lib/catalog"
 import type { CatalogFilters } from "@/lib/filters"
 
-function uniqueOptions<T extends { id: string; name?: string; label?: string }>(
-  items: T[],
-): Array<{ value: string; label: string }> {
-  const seen = new Set<string>()
-  const options: Array<{ value: string; label: string }> = []
-
-  for (const item of items) {
-    if (!seen.has(item.id)) {
-      seen.add(item.id)
-      options.push({ value: item.id, label: item.label ?? item.name ?? item.id })
-    }
-  }
-
-  return options
-}
-
 function getActiveFilterCount(filters: CatalogFilters): number {
   return [
     filters.query,

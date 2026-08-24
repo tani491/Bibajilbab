@@ -1,10 +1,14 @@
-import { brandConfig } from "@bibajilbab/config"
+import { brandConfig, parsePublicEnv } from "@bibajilbab/config"
 
 import { faqs, getProductStock, type StoreProduct } from "@/lib/catalog"
 import { formatFcfa } from "@/lib/money"
 
 function safeJsonLd(data: Record<string, unknown> | Array<Record<string, unknown>>): string {
   return JSON.stringify(data).replace(/</g, "\\u003c")
+}
+
+function toInternationalPhoneNumber(value: string): string {
+  return value.startsWith("+") ? value : `+${value}`
 }
 
 export function JsonLd({
@@ -18,18 +22,49 @@ export function JsonLd({
 }
 
 export function OrganizationStructuredData({ siteUrl }: { siteUrl: string }) {
+  const publicEnv = parsePublicEnv(process.env)
+  const phoneNumber = toInternationalPhoneNumber(publicEnv.brand.whatsappNumber)
+
   return (
     <JsonLd
       data={{
         "@context": "https://schema.org",
-        "@type": "Organization",
+        "@type": ["Organization", "ClothingStore"],
         name: brandConfig.name,
         url: siteUrl,
         slogan: brandConfig.slogan,
+        telephone: phoneNumber,
+        image: new URL("/og-image.jpg", siteUrl).toString(),
+        logo: new URL("/images/hero-modest-fashion.png", siteUrl).toString(),
+        address: {
+          "@type": "PostalAddress",
+          addressCountry: "SN",
+          addressLocality: "Dakar",
+          addressRegion: "Dakar",
+        },
+        geo: {
+          "@type": "GeoCoordinates",
+          latitude: 14.7167,
+          longitude: -17.4677,
+        },
+        areaServed: [
+          {
+            "@type": "Country",
+            name: "Senegal",
+          },
+          {
+            "@type": "City",
+            name: "Dakar",
+          },
+        ],
+        priceRange: "XOF",
+        currenciesAccepted: "XOF",
+        paymentAccepted: "Cash, Wave, Orange Money",
+        sameAs: [publicEnv.brand.instagramUrl, publicEnv.brand.tiktokUrl],
         contactPoint: {
           "@type": "ContactPoint",
           contactType: "customer support",
-          telephone: brandConfig.whatsapp.display,
+          telephone: phoneNumber,
           availableLanguage: ["fr"],
         },
       }}
@@ -62,7 +97,10 @@ export function ProductStructuredData({
   product: StoreProduct
   siteUrl: string
 }) {
-  const image = product.images[0]
+  const images = product.images
+    .map((image) => image.src.trim())
+    .filter((src) => src.length > 0)
+    .map((src) => new URL(src, siteUrl).toString())
   const stock = getProductStock(product)
 
   return (
@@ -72,7 +110,7 @@ export function ProductStructuredData({
         "@type": "Product",
         name: product.name,
         sku: product.sku,
-        image: image ? [new URL(image.src, siteUrl).toString()] : undefined,
+        image: images.length > 0 ? images : [new URL("/og-image.jpg", siteUrl).toString()],
         description: product.shortDescription,
         brand: {
           "@type": "Brand",
@@ -89,7 +127,7 @@ export function ProductStructuredData({
           },
           url: new URL(`/produits/${product.slug}`, siteUrl).toString(),
           seller: {
-            "@type": "Organization",
+            "@type": "ClothingStore",
             name: brandConfig.name,
           },
         },

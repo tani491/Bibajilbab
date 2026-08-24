@@ -9,6 +9,7 @@ export default function robots(): MetadataRoute.Robots {
     rules: {
       userAgent: "*",
       allow: "/",
+      disallow: ["/api/"],
     },
     sitemap: new URL("/sitemap.xml", publicEnv.urls.site).toString(),
     host: publicEnv.urls.site,

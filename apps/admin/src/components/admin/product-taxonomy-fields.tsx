@@ -29,8 +29,8 @@ function optionLabel(option: ProductTaxonomyOption): string {
 }
 
 export function ProductTaxonomyFields({
-  categories: _categories,
-  collections: _collections,
+  categories,
+  collections,
   defaultCategoryId,
   defaultCollectionIds,
 }: {
@@ -39,8 +39,8 @@ export function ProductTaxonomyFields({
   defaultCategoryId?: string | undefined
   defaultCollectionIds?: string[] | undefined
 }) {
-  const categoryOptions = defaultCategories
-  const collectionOptions = defaultCollections
+  const categoryOptions = categories.length > 0 ? categories : defaultCategories
+  const collectionOptions = collections.length > 0 ? collections : defaultCollections
   const [selectedCategory, setSelectedCategory] = useState(
     defaultCategoryId || categoryOptions[0]?.id || "",
   )

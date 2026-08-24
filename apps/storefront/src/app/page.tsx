@@ -48,7 +48,7 @@ function isVideoMediaUrl(url: string | undefined): boolean {
   return /\.(mp4|webm|mov)(?:$|[?#])/i.test(url) || /\/video\/upload(?:\/|$)/i.test(url)
 }
 
-export const dynamic = "force-dynamic"
+export const revalidate = 60
 
 export default async function StorefrontHomePage() {
   const publicEnv = parsePublicEnv(process.env)
@@ -59,9 +59,10 @@ export default async function StorefrontHomePage() {
   const newestProducts = [...products]
     .sort((left, right) => right.createdAt.localeCompare(left.createdAt))
     .slice(0, 4)
-  const featuredProducts = (products.filter((product) => product.featured).length > 0
-    ? products.filter((product) => product.featured)
-    : newestProducts
+  const featuredProducts = (
+    products.filter((product) => product.featured).length > 0
+      ? products.filter((product) => product.featured)
+      : newestProducts
   ).slice(0, 4)
   const previewPopularProducts = [...products]
     .sort((a, b) => a.previewRank - b.previewRank)
@@ -107,13 +108,15 @@ export default async function StorefrontHomePage() {
               L'élégance dans la pudeur
             </h1>
             <p className="mb-6 text-sm font-normal leading-relaxed text-slate-800 md:text-base">
-              Découvrez nos djilbabs, khimars, tuniques et tenues de prière conçus pour accompagner votre quotidien et vos célébrations.
+              Découvrez nos djilbabs, khimars, tuniques et tenues de prière conçus pour accompagner
+              votre quotidien et vos célébrations.
             </p>
             <div className="flex flex-col gap-3 sm:flex-row">
               <Link
                 className={buttonStyles({
                   size: "lg",
-                  className: "flex items-center justify-center gap-2 rounded-xl bg-brand-plum px-5 py-3 font-medium shadow-md hover:bg-brand-plum/90",
+                  className:
+                    "flex items-center justify-center gap-2 rounded-xl bg-brand-plum px-5 py-3 font-medium shadow-md hover:bg-brand-plum/90",
                 })}
                 href="/catalogue"
               >
@@ -123,7 +126,8 @@ export default async function StorefrontHomePage() {
               <a
                 className={buttonStyles({
                   size: "lg",
-                  className: "flex items-center justify-center gap-2 rounded-xl bg-emerald-600 px-5 py-3 font-medium shadow-md hover:bg-emerald-700",
+                  className:
+                    "flex items-center justify-center gap-2 rounded-xl bg-emerald-600 px-5 py-3 font-medium shadow-md hover:bg-emerald-700",
                 })}
                 href={buildGeneralWhatsAppUrl()}
               >
@@ -160,17 +164,17 @@ export default async function StorefrontHomePage() {
                     category.imageSrc
 
                   return (
-                <div className="relative aspect-[4/5] bg-brand-blush">
-                  {imageSrc ? (
-                    <Image
-                      src={imageSrc}
-                      alt={category.imageAlt}
-                      fill
-                      sizes="(max-width: 1024px) 50vw, 25vw"
-                      className="object-cover transition duration-300 group-hover:scale-105"
-                    />
-                  ) : null}
-                </div>
+                    <div className="relative aspect-[4/5] bg-brand-blush">
+                      {imageSrc ? (
+                        <Image
+                          src={imageSrc}
+                          alt={category.imageAlt}
+                          fill
+                          sizes="(max-width: 1024px) 50vw, 25vw"
+                          className="object-cover transition duration-300 group-hover:scale-105"
+                        />
+                      ) : null}
+                    </div>
                   )
                 })()}
                 <div className="p-4">

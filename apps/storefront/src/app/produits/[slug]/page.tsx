@@ -3,7 +3,7 @@ import type { Metadata } from "next"
 import Link from "next/link"
 import { notFound } from "next/navigation"
 
-import { parsePublicEnv } from "@bibajilbab/config"
+import { brandConfig, parsePublicEnv } from "@bibajilbab/config"
 import { Card, CardContent, Container, SectionHeading, buttonStyles } from "@bibajilbab/ui/server"
 
 import { Breadcrumbs } from "@/components/commerce/breadcrumbs"
@@ -15,20 +15,14 @@ import {
   BreadcrumbStructuredData,
   ProductStructuredData,
 } from "@/components/commerce/structured-data"
-import {
-  createPageMetadata,
-  getCategoryName,
-} from "@/lib/catalog"
-import {
-  getStorefrontProductBySlug,
-  getStorefrontProducts,
-} from "@/lib/storefront-data"
+import { getCategoryName } from "@/lib/catalog"
+import { getStorefrontProductBySlug, getStorefrontProducts } from "@/lib/storefront-data"
 
 type ProductPageProps = {
   params: Promise<{ slug: string }>
 }
 
-export const dynamic = "force-dynamic"
+export const revalidate = 60
 
 export async function generateMetadata({ params }: ProductPageProps): Promise<Metadata> {
   const { slug } = await params
@@ -38,11 +32,45 @@ export async function generateMetadata({ params }: ProductPageProps): Promise<Me
     return {}
   }
 
-  return createPageMetadata({
-    title: product.seo.title,
-    description: product.seo.description,
-    path: `/produits/${product.slug}`,
-  })
+  const title = `${product.name} - Modest Fashion | ${brandConfig.name}`
+  const description =
+    product.shortDescription || product.seo.description || "Produit BibaJilbab disponible a Dakar."
+  const image =
+    product.images.find((productImage) => productImage.src.trim().length > 0)?.src ??
+    "/og-image.jpg"
+
+  return {
+    title: {
+      absolute: title,
+    },
+    description,
+    alternates: {
+      canonical: `/produits/${product.slug}`,
+    },
+    openGraph: {
+      type: "website",
+      locale: "fr_SN",
+      alternateLocale: ["fr_FR", "en_US"],
+      url: `/produits/${product.slug}`,
+      siteName: brandConfig.name,
+      title,
+      description,
+      images: [
+        {
+          url: image,
+          width: 1200,
+          height: 630,
+          alt: product.images[0]?.alt ?? `${product.name} - BibaJilbab Senegal`,
+        },
+      ],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+      images: [image],
+    },
+  }
 }
 
 export default async function ProductPage({ params }: ProductPageProps) {

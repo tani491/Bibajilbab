@@ -514,10 +514,14 @@ export function createPageMetadata({
   title,
   description,
   path,
+  image = "/og-image.jpg",
+  imageAlt = "BibaJilbab Senegal - boutique modest fashion a Dakar",
 }: {
   title: string
   description: string
   path: string
+  image?: string
+  imageAlt?: string
 }): Metadata {
   return {
     title,
@@ -531,7 +535,22 @@ export function createPageMetadata({
       url: path,
       siteName: brandConfig.name,
       locale: "fr_SN",
+      alternateLocale: ["fr_FR", "en_US"],
       type: "website",
+      images: [
+        {
+          url: image,
+          width: 1200,
+          height: 630,
+          alt: imageAlt,
+        },
+      ],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: `${title} | ${brandConfig.name}`,
+      description,
+      images: [image],
     },
   }
 }

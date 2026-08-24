@@ -1,4 +1,20 @@
 import { createSecurityHeaders } from "../../security-headers.mjs"
+import { validateProductionEnv } from "@bibajilbab/config/env"
+
+// Validate environment variables at build time for production
+const shouldValidateProductionEnv =
+  process.env.APP_ENV === "production" ||
+  process.env.NEXT_PUBLIC_APP_ENV === "production" ||
+  process.env.VERCEL_ENV === "production"
+
+if (shouldValidateProductionEnv) {
+  try {
+    validateProductionEnv(process.env)
+  } catch (error) {
+    console.error("Environment validation failed:", error.message)
+    process.exit(1)
+  }
+}
 
 /** @type {import("next").NextConfig} */
 const nextConfig = {

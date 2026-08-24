@@ -7,71 +7,47 @@ import { getFirebaseAdminFirestore, getFirebaseAdminStatus } from "@/lib/firebas
 export const dynamic = "force-dynamic"
 export const runtime = "nodejs"
 
-function serializeFirestoreValue(value: unknown): unknown {
-  if (value === null || typeof value !== "object") {
-    return value
-  }
+function isAuthorizedDebugRequest(request: Request): boolean {
+  const expectedSecret = process.env.DEBUG_FIRESTORE_SECRET
 
-  if (value instanceof Date) {
-    return value.toISOString()
-  }
-
-  if (Array.isArray(value)) {
-    return value.map(serializeFirestoreValue)
-  }
-
-  const record = value as Record<string, unknown>
-
-  if (typeof record.toDate === "function") {
-    const date = record.toDate()
-
-    return date instanceof Date ? date.toISOString() : String(date)
-  }
-
-  return Object.fromEntries(
-    Object.entries(record).map(([key, entry]) => [key, serializeFirestoreValue(entry)]),
+  return Boolean(
+    expectedSecret && request.headers.get("x-bibajilbab-debug-secret") === expectedSecret,
   )
 }
 
-export async function GET() {
+export async function GET(request: Request) {
   const env = parseServerEnv(process.env)
+
+  if (!isAuthorizedDebugRequest(request)) {
+    return NextResponse.json({ error: "Route indisponible." }, { status: 404 })
+  }
+
   const firebase = getFirebaseAdminStatus()
 
   try {
     const snapshot = await getFirebaseAdminFirestore().collection("products").get()
-    const firstDocument = snapshot.docs[0]
 
     return NextResponse.json(
       {
-        status: "success",
-        projectId: env.firebaseAdmin.projectId ?? null,
-        firebase,
+        status: "ok",
+        firebase: { available: firebase.available },
         count: snapshot.size,
-        firstDocument: firstDocument
-          ? {
-              id: firstDocument.id,
-              data: serializeFirestoreValue(firstDocument.data()),
-            }
-          : null,
       },
       { headers: { "Cache-Control": "no-store" } },
     )
   } catch (error) {
     const normalizedError = error instanceof Error ? error : new Error(String(error))
 
-    console.error("[Storefront Firestore Error]", error)
+    if (!env.isProduction) {
+      console.error("[Storefront Firestore Error]", normalizedError.message)
+    }
 
     return NextResponse.json(
       {
         status: "error",
-        projectId: env.firebaseAdmin.projectId ?? null,
-        firebase,
+        firebase: { available: firebase.available },
         count: 0,
-        firstDocument: null,
-        error: {
-          message: normalizedError.message,
-          stack: normalizedError.stack ?? null,
-        },
+        error: { message: normalizedError.message },
       },
       { status: 500, headers: { "Cache-Control": "no-store" } },
     )

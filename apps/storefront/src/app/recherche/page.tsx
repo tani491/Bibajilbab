@@ -19,7 +19,7 @@ export const metadata = createPageMetadata({
   path: "/recherche",
 })
 
-export const dynamic = "force-dynamic"
+export const revalidate = 60
 
 export default async function SearchPage({
   searchParams,
@@ -31,10 +31,18 @@ export default async function SearchPage({
   const filteredProducts = getFilteredProducts(products, filters)
   const paginated = paginateProducts(filteredProducts, filters.page, 12)
   const sizeOptions = Array.from(
-    new Map(products.flatMap((product) => product.sizes).map((item) => [item.id, { value: item.id, label: item.label }])).values(),
+    new Map(
+      products
+        .flatMap((product) => product.sizes)
+        .map((item) => [item.id, { value: item.id, label: item.label }]),
+    ).values(),
   )
   const colorOptions = Array.from(
-    new Map(products.flatMap((product) => product.colors).map((item) => [item.id, { value: item.id, label: item.name }])).values(),
+    new Map(
+      products
+        .flatMap((product) => product.colors)
+        .map((item) => [item.id, { value: item.id, label: item.name }]),
+    ).values(),
   )
 
   return (

@@ -1,6 +1,6 @@
 "use server"
 
-import { revalidatePath } from "next/cache"
+import { revalidatePath, revalidateTag } from "next/cache"
 import { FieldValue } from "firebase-admin/firestore"
 
 import { FirebaseUnavailableError } from "@bibajilbab/config"
@@ -122,6 +122,12 @@ async function requireActionSession(allowedRoles: Parameters<typeof requireAdmin
   return requireAdminSession(allowedRoles)
 }
 
+function revalidatePublicStorefrontCache() {
+  revalidateTag("storefront-products", "max")
+  revalidateTag("storefront-homepage", "max")
+  revalidateTag("storefront-settings", "max")
+}
+
 export async function saveProductAction(
   _previousState: ActionState,
   formData: FormData,
@@ -220,6 +226,7 @@ export async function saveProductAction(
     revalidatePath("/produits/[slug]", "page")
     revalidatePath("/categories/[slug]", "page")
     revalidatePath("/collections/[slug]", "page")
+    revalidatePublicStorefrontCache()
 
     return ok(existing ? "Produit modifié." : "Produit créé.")
   } catch (error) {
@@ -260,6 +267,7 @@ export async function updateProductStatusAction(
     revalidatePath("/produits/[slug]", "page")
     revalidatePath("/categories/[slug]", "page")
     revalidatePath("/collections/[slug]", "page")
+    revalidatePublicStorefrontCache()
 
     return ok("Statut mis à jour.")
   } catch (error) {
@@ -344,6 +352,7 @@ export async function deleteProductAction(
     revalidatePath("/")
     revalidatePath("/produits")
     revalidatePath("/produits/[slug]", "page")
+    revalidatePublicStorefrontCache()
 
     return ok("Produit supprimé.")
   } catch (error) {
@@ -427,6 +436,7 @@ export async function importProductsCsvAction(
       metadata: { rows: rows.length },
     })
     revalidatePath("/products")
+    revalidatePublicStorefrontCache()
 
     return ok(`${rows.length} produit(s) importé(s) en brouillon.`)
   } catch (error) {
@@ -474,6 +484,8 @@ export async function saveCategoryAction(
       documentId,
     })
     revalidatePath("/categories")
+    revalidatePath("/categories/[slug]", "page")
+    revalidatePublicStorefrontCache()
 
     return ok("Catégorie enregistrée.")
   } catch (error) {
@@ -520,7 +532,12 @@ export async function saveCollectionAction(
       collection: "collections",
       documentId,
     })
+    // Revalidate both categories and collections paths on the storefront
     revalidatePath("/categories")
+    revalidatePath("/collections")
+    revalidatePath("/collections/[slug]", "page")
+    revalidatePath("/")
+    revalidatePublicStorefrontCache()
 
     return ok("Collection enregistrée.")
   } catch (error) {
@@ -566,6 +583,7 @@ export async function saveMediaAction(
     revalidatePath("/media")
     revalidatePath("/")
     revalidatePath("/produits")
+    revalidatePublicStorefrontCache()
 
     return ok("Média enregistré.")
   } catch (error) {
@@ -603,14 +621,11 @@ export async function saveContentAction(
         updatedAt: new Date().toISOString(),
       })
 
+      await db.collection("siteSettings").doc("default").set(settingsPayload, { merge: true })
       await db
-        .collection("siteSettings")
-        .doc("default")
-        .set(settingsPayload, { merge: true })
-      await db.collection("settings").doc("general").set(
-        { ...settingsPayload, id: "general" },
-        { merge: true },
-      )
+        .collection("settings")
+        .doc("general")
+        .set({ ...settingsPayload, id: "general" }, { merge: true })
     } else if (kind === "faq") {
       const parsed = faqFormSchema.parse(Object.fromEntries(formData))
       await db
@@ -665,6 +680,7 @@ export async function saveContentAction(
     revalidatePath("/settings")
     revalidatePath("/")
     revalidatePath("/produits")
+    revalidatePublicStorefrontCache()
 
     return ok("Contenu enregistré.")
   } catch (error) {

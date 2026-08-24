@@ -6,11 +6,7 @@ import { Container, SectionHeading } from "@bibajilbab/ui/server"
 import { Breadcrumbs } from "@/components/commerce/breadcrumbs"
 import { CatalogFiltersForm } from "@/components/commerce/catalog-filters-form"
 import { ProductGrid } from "@/components/commerce/product-grid"
-import {
-  collections,
-  createPageMetadata,
-  getCollectionBySlug,
-} from "@/lib/catalog"
+import { collections, createPageMetadata, getCollectionBySlug } from "@/lib/catalog"
 import { getFilteredProducts, parseCatalogFilters, type SearchParamRecord } from "@/lib/filters"
 import { getStorefrontProducts } from "@/lib/storefront-data"
 
@@ -23,7 +19,7 @@ export function generateStaticParams() {
   return collections.map((collection) => ({ slug: collection.slug }))
 }
 
-export const dynamic = "force-dynamic"
+export const revalidate = 60
 
 export async function generateMetadata({ params }: CollectionPageProps): Promise<Metadata> {
   const { slug } = await params
@@ -34,8 +30,8 @@ export async function generateMetadata({ params }: CollectionPageProps): Promise
   }
 
   return createPageMetadata({
-    title: collection.name,
-    description: collection.description,
+    title: `Collection ${collection.name} a Dakar`,
+    description: `Explorez la collection ${collection.name} BibaJilbab a Dakar: ${collection.description} Commande finale sur WhatsApp, prix en XOF et livraison au Senegal.`,
     path: `/collections/${collection.slug}`,
   })
 }
@@ -59,10 +55,18 @@ export default async function CollectionPage({ params, searchParams }: Collectio
     collection: collection.slug === "nouveautes" ? "" : collection.slug,
   })
   const sizeOptions = Array.from(
-    new Map(products.flatMap((product) => product.sizes).map((item) => [item.id, { value: item.id, label: item.label }])).values(),
+    new Map(
+      products
+        .flatMap((product) => product.sizes)
+        .map((item) => [item.id, { value: item.id, label: item.label }]),
+    ).values(),
   )
   const colorOptions = Array.from(
-    new Map(products.flatMap((product) => product.colors).map((item) => [item.id, { value: item.id, label: item.name }])).values(),
+    new Map(
+      products
+        .flatMap((product) => product.colors)
+        .map((item) => [item.id, { value: item.id, label: item.name }]),
+    ).values(),
   )
 
   return (

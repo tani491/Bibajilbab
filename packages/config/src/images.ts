@@ -14,3 +14,21 @@ export function getProductImageSrc(
 ): string {
   return src && src.trim().length > 0 ? src : fallback
 }
+
+export function getOptimizedCloudinaryImageSrc(src: string | undefined): string | undefined {
+  if (!src) {
+    return undefined
+  }
+
+  const trimmed = src.trim()
+
+  if (!trimmed.includes("res.cloudinary.com") || !trimmed.includes("/image/upload/")) {
+    return trimmed
+  }
+
+  if (trimmed.includes("/f_auto") || trimmed.includes(",f_auto") || trimmed.includes("f_auto,")) {
+    return trimmed
+  }
+
+  return trimmed.replace("/image/upload/", "/image/upload/f_auto,q_auto/")
+}
