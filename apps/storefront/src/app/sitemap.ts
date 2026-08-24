@@ -42,13 +42,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     lastModified: now,
     priority: 0.8,
   }))
-  const productRouteEntries = (await getStorefrontProducts({ status: "published" })).map(
-    (product) => ({
-      route: `/produits/${product.slug}`,
-      lastModified: new Date(product.updatedAt),
-      priority: 0.7,
-    }),
-  )
+  const products = await getStorefrontProducts({ status: "published" })
+  const productRouteEntries = products.map((product) => ({
+    route: `/produits/${product.slug}`,
+    lastModified: new Date(product.updatedAt),
+    priority: 0.7,
+  }))
 
   return [
     ...staticRouteEntries,
