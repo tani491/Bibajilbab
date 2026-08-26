@@ -1,5 +1,10 @@
+import path from "node:path"
+import { fileURLToPath } from "node:url"
+
 import { createSecurityHeaders } from "../../security-headers.mjs"
 import { validateProductionEnv } from "@bibajilbab/config/env"
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
 // Validate environment variables at build time for production
 const shouldValidateProductionEnv =
@@ -17,6 +22,7 @@ if (shouldValidateProductionEnv) {
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  outputFileTracingRoot: path.join(__dirname, "../../"),
   serverExternalPackages: [
     "firebase-admin",
     "@google-cloud/firestore",
