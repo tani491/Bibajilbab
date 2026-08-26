@@ -97,9 +97,9 @@ const optionalPositiveIntegerFormSchema = z.preprocess(
   z.coerce.number().int().positive().optional(),
 )
 
-const optionalRatingFormSchema = z.preprocess(
+const ratingFormSchema = z.preprocess(
   (value) => (value === "" ? undefined : value),
-  z.coerce.number().int().min(1).max(5).optional(),
+  z.coerce.number().int().min(1).max(5).default(5),
 )
 
 const optionalDateTimeFormSchema = z
@@ -276,9 +276,23 @@ export const testimonialFormSchema = testimonialSchema
   .omit({ createdAt: true, updatedAt: true })
   .extend({
     id: z.string().trim().optional(),
-    rating: optionalRatingFormSchema,
-    position: nonNegativeIntegerFormSchema,
+    city: optionalStringSchema,
+    rating: ratingFormSchema,
+    verifiedPurchase: optionalSwitchSchema,
+    isPublished: optionalSwitchSchema,
+    orderIndex: nonNegativeIntegerFormSchema,
   })
+
+export const testimonialPublicationSchema = z.object({
+  id: z.string().trim().min(1),
+  isPublished: z
+    .enum(["true", "false"])
+    .transform((value) => value === "true"),
+})
+
+export const testimonialDeleteSchema = z.object({
+  id: z.string().trim().min(1),
+})
 
 export const homepageSectionFormSchema = homepageSectionSchema
   .omit({ createdAt: true, updatedAt: true })

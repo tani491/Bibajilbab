@@ -1,4 +1,4 @@
-import { Heart, Instagram, Music2, ShieldCheck, ShoppingBag, Truck } from "lucide-react"
+import { BadgeCheck, Instagram, Music2, ShieldCheck, ShoppingBag, Star, Truck } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
 
@@ -14,11 +14,12 @@ import {
 
 import { ProductGrid } from "@/components/commerce/product-grid"
 import { WhatsAppIcon } from "@/components/layout/whatsapp-icon"
-import { categories, testimonials } from "@/lib/catalog"
+import { categories } from "@/lib/catalog"
 import {
   getStorefrontCategoryImages,
   getStorefrontHero,
   getStorefrontProducts,
+  getStorefrontTestimonials,
 } from "@/lib/storefront-data"
 import { buildGeneralWhatsAppUrl } from "@/lib/whatsapp"
 
@@ -48,12 +49,31 @@ function isVideoMediaUrl(url: string | undefined): boolean {
   return /\.(mp4|webm|mov)(?:$|[?#])/i.test(url) || /\/video\/upload(?:\/|$)/i.test(url)
 }
 
+function RatingStars({ rating }: { rating: number }) {
+  return (
+    <span className="inline-flex items-center gap-0.5" aria-label={`${rating} sur 5`}>
+      {Array.from({ length: 5 }, (_, index) => (
+        <Star
+          key={index}
+          aria-hidden="true"
+          className={
+            index < rating ? "h-4 w-4 fill-amber-400 text-amber-400" : "h-4 w-4 text-brand-border"
+          }
+        />
+      ))}
+    </span>
+  )
+}
+
 export const revalidate = 60
 
 export default async function StorefrontHomePage() {
   const publicEnv = parsePublicEnv(process.env)
-  const products = await getStorefrontProducts({ status: "published" })
-  const hero = await getStorefrontHero()
+  const [products, hero, testimonials] = await Promise.all([
+    getStorefrontProducts({ status: "published" }),
+    getStorefrontHero(),
+    getStorefrontTestimonials(),
+  ])
   const categoryImages = await getStorefrontCategoryImages(products)
   const fallbackImage = products[0]?.images[0]
   const newestProducts = [...products]
@@ -243,36 +263,53 @@ export default async function StorefrontHomePage() {
         </Container>
       </section>
 
-      <section className="border-y border-brand-border bg-brand-blush py-16">
-        <Container className="grid gap-8 lg:grid-cols-[0.8fr_1.2fr]">
-          <div>
-            <SectionHeading
-              eyebrow="À propos"
-              title={brandConfig.name}
-              description={brandConfig.slogan}
-            />
-            <Link
-              className={buttonStyles({ variant: "outline", className: "mt-6 bg-white" })}
-              href="/a-propos"
-            >
-              Lire la présentation
-            </Link>
-          </div>
-          <div className="grid gap-4 md:grid-cols-2">
-            {testimonials.map((testimonial) => (
-              <Card key={testimonial.id}>
-                <CardContent>
-                  <Heart aria-hidden="true" className="h-5 w-5 text-brand-plum" />
-                  <p className="mt-4 text-sm leading-6 text-brand-muted">{testimonial.content}</p>
-                  <p className="mt-4 text-sm font-semibold text-brand-ink">
-                    {testimonial.customerName}
-                  </p>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </Container>
-      </section>
+      {testimonials.length > 0 ? (
+        <section className="border-y border-brand-border bg-brand-blush py-16">
+          <Container className="grid gap-8 lg:grid-cols-[0.8fr_1.2fr]">
+            <div>
+              <SectionHeading
+                eyebrow="Avis clientes"
+                title="Elles partagent leur expérience"
+                description={brandConfig.slogan}
+              />
+              <Link
+                className={buttonStyles({ variant: "outline", className: "mt-6 bg-white" })}
+                href="/a-propos"
+              >
+                Lire la présentation
+              </Link>
+            </div>
+            <div className="grid gap-4 md:grid-cols-2">
+              {testimonials.map((testimonial) => (
+                <Card key={testimonial.id}>
+                  <CardContent>
+                    <div className="flex flex-wrap items-center gap-3">
+                      <RatingStars rating={testimonial.rating} />
+                      {testimonial.verifiedPurchase ? (
+                        <Badge variant="powder" className="gap-1">
+                          <BadgeCheck aria-hidden="true" className="h-3.5 w-3.5" />
+                          Achat vérifié
+                        </Badge>
+                      ) : null}
+                    </div>
+                    <p className="mt-4 text-sm leading-6 text-brand-muted">
+                      {testimonial.content}
+                    </p>
+                    <div className="mt-4">
+                      <p className="text-sm font-semibold text-brand-ink">
+                        {testimonial.authorName}
+                      </p>
+                      {testimonial.city ? (
+                        <p className="mt-1 text-xs text-brand-muted">{testimonial.city}</p>
+                      ) : null}
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </Container>
+        </section>
+      ) : null}
 
       <section className="py-16">
         <Container className="grid gap-8 lg:grid-cols-[1fr_auto] lg:items-center">

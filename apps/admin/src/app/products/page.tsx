@@ -81,7 +81,98 @@ export default async function ProductsPage({
             description="Créez un produit ou modifiez les filtres."
           />
         ) : (
-          <div className="overflow-x-auto">
+          <>
+            <div className="grid gap-3 p-3 md:hidden">
+              {filteredProducts.map((product) => (
+                <article
+                  key={product.id}
+                  className="rounded-card border border-brand-border bg-white p-4"
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <Link
+                        href={`/products/${product.id}`}
+                        className="font-semibold text-brand-ink hover:text-brand-plum"
+                      >
+                        {product.name}
+                      </Link>
+                      <p className="mt-1 break-all text-xs text-brand-muted">{product.slug}</p>
+                    </div>
+                    <Badge variant={product.status === "published" ? "success" : "outline"}>
+                      {product.status}
+                    </Badge>
+                  </div>
+                  <dl className="mt-4 grid grid-cols-2 gap-3 text-sm">
+                    <div>
+                      <dt className="text-xs uppercase text-brand-muted">Référence</dt>
+                      <dd className="mt-1 font-medium text-brand-ink">{product.sku}</dd>
+                    </div>
+                    <div>
+                      <dt className="text-xs uppercase text-brand-muted">Stock</dt>
+                      <dd className="mt-1 font-medium text-brand-ink">{product.stock}</dd>
+                    </div>
+                    <div>
+                      <dt className="text-xs uppercase text-brand-muted">Prix</dt>
+                      <dd className="mt-1 font-medium text-brand-ink">{product.price} XOF</dd>
+                    </div>
+                  </dl>
+                  <div className="mt-4 flex flex-wrap items-center gap-1.5">
+                    <Link
+                      href={`/products/${product.id}`}
+                      className={buttonStyles({
+                        variant: "outline",
+                        size: "sm",
+                        className: "h-8 px-2 text-xs",
+                      })}
+                      aria-label={`Modifier ${product.name}`}
+                    >
+                      <Pencil aria-hidden="true" className="h-3.5 w-3.5" />
+                      <span className="sr-only">Modifier</span>
+                    </Link>
+                    <a
+                      href={`/products/${product.id}?preview=1`}
+                      className={buttonStyles({
+                        variant: "ghost",
+                        size: "sm",
+                        className: "h-8 px-2 text-xs",
+                      })}
+                      aria-label={`Prévisualiser ${product.name}`}
+                    >
+                      <Eye aria-hidden="true" className="h-3.5 w-3.5" />
+                      <span className="sr-only">Prévisualiser</span>
+                    </a>
+                    <ActionForm action={updateProductStatusAction} submitLabel="Publier" compact>
+                      <input type="hidden" name="id" value={product.id} />
+                      <input type="hidden" name="status" value="published" />
+                    </ActionForm>
+                    <ActionForm action={updateProductStatusAction} submitLabel="Dépublier" compact>
+                      <input type="hidden" name="id" value={product.id} />
+                      <input type="hidden" name="status" value="draft" />
+                    </ActionForm>
+                    <ActionForm action={duplicateProductAction} submitLabel="Dupliquer" compact>
+                      <input type="hidden" name="id" value={product.id} />
+                    </ActionForm>
+                    <ActionForm action={updateProductStatusAction} submitLabel="Archiver" compact>
+                      <input type="hidden" name="id" value={product.id} />
+                      <input type="hidden" name="status" value="archived" />
+                    </ActionForm>
+                    {session.role === "admin" ? (
+                      <ActionForm
+                        action={deleteProductAction}
+                        submitLabel={`Supprimer ${product.name}`}
+                        danger
+                        compact
+                        confirmMessage={`Confirmer la suppression de « ${product.name} » ?`}
+                        submitIcon={<Trash2 aria-hidden="true" className="h-4 w-4" />}
+                      >
+                        <input type="hidden" name="id" value={product.id} />
+                      </ActionForm>
+                    ) : null}
+                  </div>
+                </article>
+              ))}
+            </div>
+            <div className="hidden overflow-x-auto md:block">
             <table className="w-full min-w-[980px] text-left text-sm">
               <thead className="bg-brand-blush text-brand-muted">
                 <tr>
@@ -164,7 +255,8 @@ export default async function ProductsPage({
                 ))}
               </tbody>
             </table>
-          </div>
+            </div>
+          </>
         )}
       </section>
     </AdminShell>

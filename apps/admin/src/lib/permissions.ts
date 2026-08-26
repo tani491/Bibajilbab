@@ -9,6 +9,7 @@ export const adminSectionSchema = z.enum([
   "media",
   "categories",
   "content",
+  "testimonials",
   "requests",
   "inventory",
   "users",
@@ -22,6 +23,7 @@ const editorSections = new Set<AdminSection>([
   "media",
   "categories",
   "content",
+  "testimonials",
   "requests",
   "inventory",
 ])

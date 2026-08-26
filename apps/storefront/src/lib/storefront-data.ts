@@ -3,7 +3,7 @@ import "server-only"
 import { unstable_cache } from "next/cache"
 
 import { getOptimizedCloudinaryImageSrc } from "@bibajilbab/config"
-import { productImageSchema, productSchema } from "@bibajilbab/types"
+import { productImageSchema, productSchema, testimonialSchema } from "@bibajilbab/types"
 import type { ProductImage } from "@bibajilbab/types"
 
 import { getFirebaseAdminFirestore } from "./firebase/admin"
@@ -24,6 +24,17 @@ export interface StorefrontAnnouncement {
   text: string
   href: string
   logoUrl?: string
+}
+
+export interface StorefrontTestimonial {
+  id: string
+  authorName: string
+  city?: string
+  rating: number
+  content: string
+  verifiedPurchase: boolean
+  createdAt: string
+  orderIndex: number
 }
 
 export async function getStorefrontCategoryImages(
@@ -218,6 +229,66 @@ function toStoreProduct(value: unknown): StoreProduct | null {
   }
 }
 
+function toStorefrontTestimonial(value: unknown): StorefrontTestimonial | null {
+  const source = value && typeof value === "object" ? (value as Record<string, unknown>) : null
+
+  if (!source) {
+    return null
+  }
+
+  const sourceId = typeof source.id === "string" ? source.id : undefined
+  const authorName =
+    typeof source.authorName === "string" && source.authorName.trim()
+      ? source.authorName.trim()
+      : typeof source.customerName === "string" && source.customerName.trim()
+        ? source.customerName.trim()
+        : "Cliente BibaJilbab"
+  const city =
+    typeof source.city === "string" && source.city.trim() ? source.city.trim() : undefined
+  const rating =
+    typeof source.rating === "number" && Number.isInteger(source.rating) ? source.rating : 5
+  const isPublished =
+    typeof source.isPublished === "boolean"
+      ? source.isPublished
+      : source.status === "published" || source.status === "active"
+  const orderIndex =
+    typeof source.orderIndex === "number"
+      ? source.orderIndex
+      : typeof source.position === "number"
+        ? source.position
+        : 0
+  const createdAt = source.createdAt ?? new Date(0).toISOString()
+  const candidate = {
+    ...source,
+    id: sourceId,
+    authorName,
+    ...(city ? { city } : {}),
+    rating,
+    content: typeof source.content === "string" ? source.content : "",
+    verifiedPurchase: source.verifiedPurchase === true,
+    isPublished,
+    orderIndex,
+    createdAt,
+    updatedAt: source.updatedAt ?? createdAt,
+  }
+  const parsed = testimonialSchema.safeParse(candidate)
+
+  if (!parsed.success || !parsed.data.isPublished) {
+    return null
+  }
+
+  return {
+    id: parsed.data.id ?? authorName,
+    authorName: parsed.data.authorName,
+    ...(parsed.data.city ? { city: parsed.data.city } : {}),
+    rating: parsed.data.rating,
+    content: parsed.data.content,
+    verifiedPurchase: parsed.data.verifiedPurchase,
+    createdAt: toIsoString(parsed.data.createdAt),
+    orderIndex: parsed.data.orderIndex ?? 0,
+  }
+}
+
 function toIsoString(value: string | Date | { seconds: number; nanoseconds: number }): string {
   if (typeof value === "string") {
     return value
@@ -374,6 +445,41 @@ const getStorefrontHeroCached = unstable_cache(fetchStorefrontHero, ["storefront
 
 export async function getStorefrontHero(): Promise<StorefrontHero | null> {
   return getStorefrontHeroCached()
+}
+
+async function fetchStorefrontTestimonials(): Promise<StorefrontTestimonial[]> {
+  try {
+    const snapshot = await getFirebaseAdminFirestore()
+      .collection("testimonials")
+      .where("isPublished", "==", true)
+      .get()
+    const testimonials = snapshot.docs
+      .map((document) => toStorefrontTestimonial({ id: document.id, ...document.data() }))
+      .filter((testimonial): testimonial is StorefrontTestimonial => testimonial !== null)
+
+    return testimonials.sort((left, right) => {
+      if (left.orderIndex !== right.orderIndex) {
+        return left.orderIndex - right.orderIndex
+      }
+
+      return right.createdAt.localeCompare(left.createdAt)
+    })
+  } catch {
+    return []
+  }
+}
+
+const getStorefrontTestimonialsCached = unstable_cache(
+  fetchStorefrontTestimonials,
+  ["storefront-testimonials-published"],
+  {
+    revalidate: 60,
+    tags: ["storefront-testimonials"],
+  },
+)
+
+export async function getStorefrontTestimonials(): Promise<StorefrontTestimonial[]> {
+  return getStorefrontTestimonialsCached()
 }
 
 async function fetchStorefrontAnnouncement(): Promise<StorefrontAnnouncement | null> {

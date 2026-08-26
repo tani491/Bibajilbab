@@ -96,10 +96,10 @@ export default async function ContentPreviewPage() {
                 <li key={testimonial.id} className="rounded-card border border-brand-border p-3">
                   <div className="flex items-center justify-between gap-3">
                     <span className="text-sm font-medium text-brand-ink">
-                      {testimonial.customerName}
+                      {testimonial.authorName}
                     </span>
-                    <Badge variant={testimonial.status === "published" ? "success" : "outline"}>
-                      {testimonial.status}
+                    <Badge variant={testimonial.isPublished ? "success" : "outline"}>
+                      {testimonial.isPublished ? "Actif" : "Masqué"}
                     </Badge>
                   </div>
                 </li>

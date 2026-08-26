@@ -99,9 +99,14 @@ export interface AdminFaqRow {
 
 export interface AdminTestimonialRow {
   id: string
-  customerName: string
-  status: "draft" | "published" | "archived"
-  position: number
+  authorName: string
+  city?: string | undefined
+  rating: number
+  content: string
+  verifiedPurchase: boolean
+  isPublished: boolean
+  createdAt: string
+  orderIndex: number
 }
 
 export interface DashboardData {
@@ -499,20 +504,41 @@ export async function listTestimonials(): Promise<AdminTestimonialRow[]> {
 
   const snapshot = await getFirebaseAdminFirestore().collection("testimonials").limit(100).get()
 
-  return snapshot.docs.map((doc) => {
-    const item = toPlain<{
-      customerName?: string
-      status?: AdminTestimonialRow["status"]
-      position?: number
-    }>(doc)
+  return snapshot.docs
+    .map((doc) => {
+      const item = toPlain<{
+        authorName?: string
+        customerName?: string
+        city?: string
+        rating?: number
+        content?: string
+        verifiedPurchase?: boolean
+        isPublished?: boolean
+        status?: "draft" | "published" | "archived"
+        createdAt?: unknown
+        orderIndex?: number
+        position?: number
+      }>(doc)
 
-    return {
-      id: item.id,
-      customerName: item.customerName ?? "Cliente",
-      status: item.status ?? "draft",
-      position: item.position ?? 0,
-    }
-  })
+      return {
+        id: item.id,
+        authorName: item.authorName ?? item.customerName ?? "Cliente",
+        city: item.city,
+        rating: item.rating ?? 5,
+        content: item.content ?? "",
+        verifiedPurchase: item.verifiedPurchase ?? false,
+        isPublished: item.isPublished ?? item.status === "published",
+        createdAt: dateLabel(item.createdAt),
+        orderIndex: item.orderIndex ?? item.position ?? 0,
+      }
+    })
+    .sort((left, right) => {
+      if (left.orderIndex !== right.orderIndex) {
+        return left.orderIndex - right.orderIndex
+      }
+
+      return right.createdAt.localeCompare(left.createdAt)
+    })
 }
 
 export async function getDashboardData(): Promise<DashboardData> {

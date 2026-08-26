@@ -43,7 +43,66 @@ export default async function RequestsPage() {
         {requests.length === 0 ? (
           <EmptyState title="Aucune demande" description="Aucune demande WhatsApp à afficher." />
         ) : (
-          <div className="overflow-x-auto">
+          <>
+            <div className="grid gap-3 p-3 md:hidden">
+              {requests.map((request) => (
+                <article
+                  key={request.id}
+                  className="rounded-card border border-brand-border bg-white p-4"
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className="font-semibold text-brand-ink">{request.customerName}</p>
+                      <p className="mt-1 text-xs text-brand-muted">{request.createdAt}</p>
+                    </div>
+                    <Badge variant={request.status === "confirmed" ? "success" : "outline"}>
+                      {request.status}
+                    </Badge>
+                  </div>
+                  <dl className="mt-4 grid grid-cols-2 gap-3 text-sm">
+                    <div>
+                      <dt className="text-xs uppercase text-brand-muted">Téléphone</dt>
+                      <dd className="mt-1 break-all font-medium text-brand-ink">{request.phone}</dd>
+                    </div>
+                    <div>
+                      <dt className="text-xs uppercase text-brand-muted">Zone</dt>
+                      <dd className="mt-1 font-medium text-brand-ink">
+                        {request.city ?? "Non précisée"}
+                      </dd>
+                    </div>
+                    <div>
+                      <dt className="text-xs uppercase text-brand-muted">Montant</dt>
+                      <dd className="mt-1 font-medium text-brand-ink">{request.subtotal} XOF</dd>
+                    </div>
+                  </dl>
+                  <div className="mt-4 border-t border-brand-border pt-4">
+                    <ActionForm action={updateOrderRequestAction} submitLabel="Mettre à jour">
+                      <input type="hidden" name="requestId" value={request.id} />
+                      <div className="grid gap-3">
+                        <select
+                          name="status"
+                          defaultValue={request.status}
+                          className="h-10 rounded-card border border-brand-border px-3 text-sm"
+                        >
+                          {requestStatuses.map(([value, label]) => (
+                            <option key={value} value={value}>
+                              {label}
+                            </option>
+                          ))}
+                        </select>
+                        <textarea
+                          name="internalNote"
+                          rows={3}
+                          placeholder="Note interne sans conversation privée"
+                          className="rounded-card border border-brand-border px-3 py-2 text-sm"
+                        />
+                      </div>
+                    </ActionForm>
+                  </div>
+                </article>
+              ))}
+            </div>
+            <div className="hidden overflow-x-auto md:block">
             <table className="w-full min-w-[1040px] text-left text-sm">
               <thead className="bg-brand-blush text-brand-muted">
                 <tr>
@@ -98,7 +157,8 @@ export default async function RequestsPage() {
                 ))}
               </tbody>
             </table>
-          </div>
+            </div>
+          </>
         )}
       </section>
 

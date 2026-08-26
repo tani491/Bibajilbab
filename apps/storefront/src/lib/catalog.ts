@@ -415,20 +415,6 @@ export const products: StoreProduct[] = [
   },
 ]
 
-export const testimonials = [
-  {
-    id: "testimonial-preview-1",
-    customerName: "Cliente BibaJilbab",
-    content: "Témoignage à remplacer par un avis réel validé par BibaJilbab.",
-  },
-  {
-    id: "testimonial-preview-2",
-    customerName: "Cliente BibaJilbab",
-    content:
-      "Espace prévu pour afficher des retours clients authentiques, sans avis inventé en production.",
-  },
-]
-
 export const faqs = [
   {
     question: "Comment passer commande ?",

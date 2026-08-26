@@ -22,7 +22,9 @@ import {
   productHeroFromFormData,
   productFromFormData,
   siteSettingsFormSchema,
+  testimonialDeleteSchema,
   testimonialFormSchema,
+  testimonialPublicationSchema,
 } from "./admin-schemas"
 import { getProductDocument } from "./admin-data"
 import { requireAdminSession } from "./auth"
@@ -126,6 +128,7 @@ function revalidatePublicStorefrontCache() {
   revalidateTag("storefront-products", "max")
   revalidateTag("storefront-homepage", "max")
   revalidateTag("storefront-settings", "max")
+  revalidateTag("storefront-testimonials", "max")
 }
 
 export async function saveProductAction(
@@ -641,15 +644,21 @@ export async function saveContentAction(
         )
     } else if (kind === "testimonial") {
       const parsed = testimonialFormSchema.parse(Object.fromEntries(formData))
+      const documentId = parsed.id || crypto.randomUUID()
+      const testimonialRef = db.collection("testimonials").doc(documentId)
+      const existing = await testimonialRef.get()
+      const existingCreatedAt = existing.data()?.createdAt
+      const now = new Date().toISOString()
       await db
         .collection("testimonials")
-        .doc(parsed.id || crypto.randomUUID())
+        .doc(documentId)
         .set(
-          {
+          withoutUndefined({
             ...parsed,
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
-          },
+            id: documentId,
+            createdAt: typeof existingCreatedAt === "string" ? existingCreatedAt : now,
+            updatedAt: now,
+          }),
           { merge: true },
         )
     } else if (kind === "section") {
@@ -677,6 +686,7 @@ export async function saveContentAction(
       collection: kind,
     })
     revalidatePath("/content")
+    revalidatePath("/testimonials")
     revalidatePath("/settings")
     revalidatePath("/")
     revalidatePath("/produits")
@@ -685,6 +695,115 @@ export async function saveContentAction(
     return ok("Contenu enregistré.")
   } catch (error) {
     return fail(error instanceof Error ? error.message : "Contenu non enregistré.")
+  }
+}
+
+export async function saveTestimonialAction(
+  _previousState: ActionState,
+  formData: FormData,
+): Promise<ActionState> {
+  const session = await requireActionSession(["admin", "editor"])
+
+  try {
+    const parsed = testimonialFormSchema.parse(Object.fromEntries(formData))
+    const db = await ensureConfiguredDb()
+    const documentId = parsed.id || crypto.randomUUID()
+    const testimonialRef = db.collection("testimonials").doc(documentId)
+    const existing = await testimonialRef.get()
+    const existingCreatedAt = existing.data()?.createdAt
+    const now = new Date().toISOString()
+
+    await testimonialRef.set(
+      withoutUndefined({
+        ...parsed,
+        id: documentId,
+        createdAt: typeof existingCreatedAt === "string" ? existingCreatedAt : now,
+        updatedAt: now,
+      }),
+      { merge: true },
+    )
+    await writeAuditLog({
+      actorUid: session.uid,
+      actorEmail: session.email,
+      actorRole: session.role,
+      action: parsed.id ? "testimonials.update" : "testimonials.create",
+      collection: "testimonials",
+      documentId,
+    })
+    revalidatePath("/testimonials")
+    revalidatePath("/content")
+    revalidatePath("/")
+    revalidatePublicStorefrontCache()
+
+    return ok(parsed.id ? "Témoignage modifié." : "Témoignage ajouté.")
+  } catch (error) {
+    return fail(error instanceof Error ? error.message : "Témoignage non enregistré.")
+  }
+}
+
+export async function updateTestimonialPublicationAction(
+  _previousState: ActionState,
+  formData: FormData,
+): Promise<ActionState> {
+  const session = await requireActionSession(["admin", "editor"])
+
+  try {
+    const parsed = testimonialPublicationSchema.parse(Object.fromEntries(formData))
+    const db = await ensureConfiguredDb()
+
+    await db.collection("testimonials").doc(parsed.id).set(
+      {
+        isPublished: parsed.isPublished,
+        updatedAt: new Date().toISOString(),
+      },
+      { merge: true },
+    )
+    await writeAuditLog({
+      actorUid: session.uid,
+      actorEmail: session.email,
+      actorRole: session.role,
+      action: parsed.isPublished ? "testimonials.publish" : "testimonials.hide",
+      collection: "testimonials",
+      documentId: parsed.id,
+    })
+    revalidatePath("/testimonials")
+    revalidatePath("/content")
+    revalidatePath("/")
+    revalidatePublicStorefrontCache()
+
+    return ok(parsed.isPublished ? "Témoignage publié." : "Témoignage masqué.")
+  } catch (error) {
+    return fail(error instanceof Error ? error.message : "Publication non modifiée.")
+  }
+}
+
+export async function deleteTestimonialAction(
+  _previousState: ActionState,
+  formData: FormData,
+): Promise<ActionState> {
+  const session = await requireActionSession(["admin", "editor"])
+
+  try {
+    const parsed = testimonialDeleteSchema.parse(Object.fromEntries(formData))
+    const db = await ensureConfiguredDb()
+
+    await db.collection("testimonials").doc(parsed.id).delete()
+    await writeAuditLog({
+      actorUid: session.uid,
+      actorEmail: session.email,
+      actorRole: session.role,
+      action: "testimonials.delete",
+      collection: "testimonials",
+      documentId: parsed.id,
+    })
+    revalidatePath("/testimonials")
+    revalidatePath("/content")
+    revalidatePath("/")
+    revalidatePublicStorefrontCache()
+
+    return ok("Témoignage supprimé.")
+  } catch (error) {
+    return fail(error instanceof Error ? error.message : "Suppression impossible.")
   }
 }
 

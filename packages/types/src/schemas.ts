@@ -180,13 +180,15 @@ export const mediaSchema = z.object({
 
 export const testimonialSchema = z.object({
   id: documentIdSchema.optional(),
-  customerName: z.string().trim().min(1).max(80),
+  authorName: z.string().trim().min(1).max(80),
+  city: z.string().trim().min(1).max(80).optional(),
+  rating: z.number().int().min(1).max(5).default(5),
   content: z.string().trim().min(1).max(600),
-  rating: z.number().int().min(1).max(5).optional(),
-  position: z.number().int().nonnegative().default(0),
-  status: publicationStatusSchema.default("draft"),
+  verifiedPurchase: z.boolean().default(false),
+  isPublished: z.boolean().default(false),
+  orderIndex: z.number().int().nonnegative().optional(),
   createdAt: timestampLikeSchema,
-  updatedAt: timestampLikeSchema,
+  updatedAt: timestampLikeSchema.optional(),
 })
 
 export const faqSchema = z.object({

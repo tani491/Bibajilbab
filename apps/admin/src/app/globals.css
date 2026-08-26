@@ -25,3 +25,12 @@ body {
   background: #e9b7c5;
   color: #241b25;
 }
+
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}

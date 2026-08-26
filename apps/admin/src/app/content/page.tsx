@@ -34,6 +34,10 @@ function statusLabel(status: string): string {
   return "Brouillon"
 }
 
+function publicationLabel(isPublished: boolean): string {
+  return isPublished ? "Publié" : "Masqué"
+}
+
 function textValue(settings: unknown, key: string, fallback = ""): string {
   if (!settings || typeof settings !== "object") {
     return fallback
@@ -64,7 +68,7 @@ export default async function ContentPage() {
     {
       title: "Témoignages",
       rows: testimonials.map(
-        (item) => `${item.position}. ${item.customerName} - ${statusLabel(item.status)}`,
+        (item) => `${item.orderIndex}. ${item.authorName} - ${publicationLabel(item.isPublished)}`,
       ),
     },
   ]
@@ -83,7 +87,7 @@ export default async function ContentPage() {
       />
 
       <nav className="mt-6 flex flex-wrap gap-2 text-sm font-medium">
-        {["Textes", "Accueil", "FAQ", "Avis"].map((label) => (
+        {["Textes", "Accueil", "FAQ"].map((label) => (
           <a
             key={label}
             href={`#${label.toLowerCase()}`}
@@ -92,6 +96,12 @@ export default async function ContentPage() {
             {label}
           </a>
         ))}
+        <Link
+          href="/testimonials"
+          className="rounded-card border border-brand-border bg-white px-3 py-2 text-brand-plum transition hover:bg-brand-blush focus-visible:outline-none focus-visible:shadow-focus"
+        >
+          Témoignages
+        </Link>
       </nav>
 
       {session.role === "admin" ? (
@@ -338,9 +348,14 @@ export default async function ContentPage() {
                 <input type="hidden" name="contentKind" value="testimonial" />
                 <div className="space-y-4">
                   <input
-                    name="customerName"
+                    name="authorName"
                     required
                     placeholder="Nom cliente"
+                    className="h-11 w-full rounded-card border border-brand-border px-3 text-sm"
+                  />
+                  <input
+                    name="city"
+                    placeholder="Ville ou quartier"
                     className="h-11 w-full rounded-card border border-brand-border px-3 text-sm"
                   />
                   <textarea
@@ -355,25 +370,34 @@ export default async function ContentPage() {
                     type="number"
                     min="1"
                     max="5"
+                    defaultValue="5"
                     placeholder="Note"
                     className="h-11 w-full rounded-card border border-brand-border px-3 text-sm"
                   />
                   <input
-                    name="position"
+                    name="orderIndex"
                     type="number"
                     min="0"
                     defaultValue="0"
                     className="h-11 w-full rounded-card border border-brand-border px-3 text-sm"
                   />
-                  <select
-                    name="status"
-                    defaultValue="draft"
-                    className="h-11 w-full rounded-card border border-brand-border px-3 text-sm"
-                  >
-                    <option value="draft">Brouillon</option>
-                    <option value="published">Publié</option>
-                    <option value="archived">Archivé</option>
-                  </select>
+                  <label className="flex items-center gap-3 rounded-card border border-brand-border px-3 py-3 text-sm font-medium text-brand-ink">
+                    <input
+                      name="verifiedPurchase"
+                      type="checkbox"
+                      defaultChecked
+                      className="h-4 w-4 rounded border-brand-border text-brand-plum"
+                    />
+                    Achat vérifié
+                  </label>
+                  <label className="flex items-center gap-3 rounded-card border border-brand-border px-3 py-3 text-sm font-medium text-brand-ink">
+                    <input
+                      name="isPublished"
+                      type="checkbox"
+                      className="h-4 w-4 rounded border-brand-border text-brand-plum"
+                    />
+                    Publier sur le site
+                  </label>
                 </div>
               </ActionForm>
             </div>
