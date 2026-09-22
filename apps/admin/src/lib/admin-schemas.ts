@@ -151,9 +151,30 @@ function parseJsonArray<TSchema extends z.ZodTypeAny>(
   return z.array(schema).parse(parsed)
 }
 
+function normalizeProductImageInput(value: unknown, position: number) {
+  if (typeof value === "string") {
+    return { url: value, alt: "Image produit", position }
+  }
+
+  if (value && typeof value === "object") {
+    const image = value as { position?: unknown }
+
+    return {
+      ...image,
+      position: typeof image.position === "number" ? image.position : position,
+    }
+  }
+
+  return value
+}
+
 function parseProductImages(value: string) {
   try {
-    const images = parseJsonArray(value, productImageSchema)
+    const parsed: unknown = JSON.parse(value)
+    const images = z
+      .array(z.unknown())
+      .parse(parsed)
+      .map((image, index) => productImageSchema.parse(normalizeProductImageInput(image, index)))
 
     if (images.length === 0) {
       throw new Error(
@@ -163,7 +184,7 @@ function parseProductImages(value: string) {
 
     return images
   } catch (error) {
-    if (error instanceof z.ZodError) {
+    if (error instanceof z.ZodError || error instanceof SyntaxError) {
       throw new Error(
         "Ajoutez au moins une image valide au produit : URL HTTPS, Cloudinary/Firebase, data:image ou blob.",
       )

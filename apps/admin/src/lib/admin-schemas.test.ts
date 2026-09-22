@@ -55,6 +55,20 @@ describe("admin form schemas", () => {
     )
   })
 
+  it("normalizes image URL arrays before saving products", () => {
+    const product = productFromFormData(
+      productFormData({
+        imagesJson: '["https://res.cloudinary.com/bibajilbab/image/upload/v1/simple.jpg"]',
+      }),
+    )
+
+    expect(product.images[0]).toMatchObject({
+      url: "https://res.cloudinary.com/bibajilbab/image/upload/v1/simple.jpg",
+      alt: "Image produit",
+      position: 0,
+    })
+  })
+
   it("validates site settings and WhatsApp request statuses", () => {
     const settings = siteSettingsFormSchema.parse({
       brandName: "BibaJilbab",

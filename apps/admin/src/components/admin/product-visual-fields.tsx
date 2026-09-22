@@ -111,38 +111,11 @@ function imageFromUpload(upload: UploadResult, alt: string, position: number): E
 
 function friendlyUploadError(message: string): string {
   return message.toLowerCase().includes("cloudinary")
-    ? "Aperçu local conservé. Ajoutez une URL distante ou configurez Cloudinary pour enregistrer l'image."
+    ? "Téléversement indisponible. Vérifiez la configuration Cloudinary puis réessayez."
     : message
 }
 
-function isSupportedImageUrl(value: string): boolean {
-  try {
-    const url = new URL(value)
-
-    return (
-      ["http:", "https:", "blob:"].includes(url.protocol) ||
-      (url.protocol === "data:" && value.startsWith("data:image/"))
-    )
-  } catch {
-    return false
-  }
-}
-
-function draftImage(url: string, alt: string, position: number): ProductImage | null {
-  const trimmedUrl = url.trim()
-
-  if (!trimmedUrl || !isSupportedImageUrl(trimmedUrl)) {
-    return null
-  }
-
-  return {
-    url: trimmedUrl,
-    alt: alt.trim() || "Image produit",
-    position,
-  }
-}
-
-function visibleImagesJson(images: EditableImage[], manualUrl: string, manualAlt: string): string {
+function visibleImagesJson(images: EditableImage[]): string {
   const persistedImages: ProductImage[] = normalizeImages(images)
     .filter((image) => image.url && !image.uploading)
     .map((image, position) => ({
@@ -154,12 +127,8 @@ function visibleImagesJson(images: EditableImage[], manualUrl: string, manualAlt
       height: image.height,
       position,
     }))
-  const manualImage =
-    persistedImages.length < maxProductImages
-      ? draftImage(manualUrl, manualAlt, persistedImages.length)
-      : null
 
-  return JSON.stringify(manualImage ? [...persistedImages, manualImage] : persistedImages)
+  return JSON.stringify(persistedImages)
 }
 
 export function ProductVisualFields({
@@ -191,8 +160,6 @@ export function ProductVisualFields({
   )
   const [newColorName, setNewColorName] = useState("")
   const [newColorHex, setNewColorHex] = useState("#E9B7C5")
-  const [manualImageUrl, setManualImageUrl] = useState("")
-  const [manualImageAlt, setManualImageAlt] = useState("")
   const [uploadError, setUploadError] = useState("")
   const submittedSizes = useMemo(
     () => appendUniqueById(sizes, draftSize(customSize)),
@@ -303,7 +270,7 @@ export function ProductVisualFields({
       const message =
         error instanceof Error
           ? friendlyUploadError(error.message)
-          : "Aperçu local conservé. Ajoutez une URL distante ou configurez Cloudinary pour enregistrer l'image."
+          : "Téléversement indisponible. Vérifiez la configuration Cloudinary puis réessayez."
       setUploadError(message)
       setImages((current) =>
         current.map((image) =>
@@ -329,6 +296,7 @@ export function ProductVisualFields({
   function handleFileInput(event: ChangeEvent<HTMLInputElement>) {
     if (event.target.files) {
       void uploadFiles(event.target.files)
+      event.target.value = ""
     }
   }
 
@@ -374,47 +342,12 @@ export function ProductVisualFields({
     setNewColorName("")
   }
 
-  function addManualImage() {
-    const url = manualImageUrl.trim()
-
-    if (!url) {
-      return
-    }
-
-    if (images.length >= maxProductImages) {
-      setUploadError("La galerie est limitée à 4 photos.")
-      return
-    }
-
-    try {
-      new URL(url)
-    } catch {
-      setUploadError("Collez une URL d'image valide.")
-      return
-    }
-
-    setUploadError("")
-    setImages((current) =>
-      normalizeImages([
-        ...current,
-        {
-          localId: createLocalId("manual"),
-          url,
-          alt: manualImageAlt.trim() || "Image produit",
-          position: current.length,
-        },
-      ]),
-    )
-    setManualImageUrl("")
-    setManualImageAlt("")
-  }
-
   return (
     <section className="md:col-span-2">
       <input
         type="hidden"
         name="imagesJson"
-        value={visibleImagesJson(images, manualImageUrl, manualImageAlt)}
+        value={visibleImagesJson(images)}
       />
       <input type="hidden" name="sizesJson" value={sizesJson} />
       <input type="hidden" name="colorsJson" value={colorsJson} />
@@ -460,24 +393,6 @@ export function ProductVisualFields({
               {uploadError}
             </p>
           ) : null}
-
-          <div className="grid gap-3 sm:grid-cols-[1fr_1fr_auto]">
-            <input
-              value={manualImageUrl}
-              onChange={(event) => setManualImageUrl(event.target.value)}
-              placeholder="URL HTTPS, Firebase ou Cloudinary"
-              className="h-11 rounded-card border border-brand-border px-3 text-sm"
-            />
-            <input
-              value={manualImageAlt}
-              onChange={(event) => setManualImageAlt(event.target.value)}
-              placeholder="Description de la photo"
-              className="h-11 rounded-card border border-brand-border px-3 text-sm"
-            />
-            <Button type="button" variant="outline" onClick={addManualImage}>
-              Ajouter
-            </Button>
-          </div>
 
           {images.length > 0 ? (
             <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
