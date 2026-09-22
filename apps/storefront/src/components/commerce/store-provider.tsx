@@ -19,6 +19,7 @@ import {
   recentlyViewedStorageKey,
   writeJsonStorage,
 } from "@/lib/local-storage"
+import { trackStorefrontEvent } from "@/lib/analytics"
 
 interface StorefrontState {
   favorites: string[]
@@ -108,7 +109,15 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   }, [recentlyViewed, storageReady])
 
   const addFavorite = useCallback((slug: string) => {
-    setFavorites((current) => (current.includes(slug) ? current : [...current, slug]))
+    setFavorites((current) => {
+      if (current.includes(slug)) {
+        return current
+      }
+
+      trackStorefrontEvent("favorite_add", { slug })
+
+      return [...current, slug]
+    })
   }, [])
 
   const removeFavorite = useCallback((slug: string) => {
@@ -116,12 +125,24 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   }, [])
 
   const toggleFavorite = useCallback((slug: string) => {
-    setFavorites((current) =>
-      current.includes(slug) ? current.filter((favorite) => favorite !== slug) : [...current, slug],
-    )
+    setFavorites((current) => {
+      if (current.includes(slug)) {
+        return current.filter((favorite) => favorite !== slug)
+      }
+
+      trackStorefrontEvent("favorite_add", { slug })
+
+      return [...current, slug]
+    })
   }, [])
 
   const addToCart = useCallback((line: CartLine) => {
+    trackStorefrontEvent("cart_add", {
+      productId: line.productId,
+      slug: line.slug,
+      variantId: line.variantId,
+      quantity: line.quantity,
+    })
     setCartLines((current) => addCartLine(current, line))
   }, [])
 

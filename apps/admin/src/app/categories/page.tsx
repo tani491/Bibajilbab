@@ -253,7 +253,7 @@ export default async function CategoriesPage() {
                         <td className="border-b border-brand-border py-3 pr-4 text-brand-muted">
                           {collection.type}
                         </td>
-                        <td className="border-b border-brand-border py-3 pr-4 text-brand-muted">
+                        <td className="whitespace-nowrap border-b border-brand-border py-3 pr-4 text-xs text-brand-muted sm:text-sm">
                           {[collection.startsAt, collection.endsAt].filter(Boolean).join(" -> ") ||
                             "non planifiée"}
                         </td>

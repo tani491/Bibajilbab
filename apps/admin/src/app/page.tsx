@@ -50,7 +50,7 @@ export default async function AdminDashboardPage() {
         })}
       </section>
 
-      <section className="mt-8 grid gap-6 xl:grid-cols-[1fr_0.8fr]">
+      <section className="mt-8 grid gap-3 sm:gap-6 xl:grid-cols-[1fr_0.8fr]">
         <Card>
           <CardContent>
             <h2 className="text-lg font-semibold text-brand-ink">Contenus récemment modifiés</h2>
@@ -73,7 +73,7 @@ export default async function AdminDashboardPage() {
                         <td className="border-b border-brand-border py-3 pr-4 text-brand-muted">
                           {item.collection}
                         </td>
-                        <td className="border-b border-brand-border py-3 text-brand-muted">
+                        <td className="whitespace-nowrap border-b border-brand-border py-3 text-xs text-brand-muted sm:text-sm">
                           {item.updatedAt}
                         </td>
                       </tr>
@@ -92,7 +92,7 @@ export default async function AdminDashboardPage() {
         </Card>
         <Card>
           <CardContent>
-            <h2 className="text-lg font-semibold text-brand-ink">Événements boutique</h2>
+            <h2 className="text-lg font-semibold text-brand-ink">Analytique & Provenance</h2>
             <dl className="mt-5 space-y-4 text-sm">
               <div className="flex justify-between gap-4">
                 <dt className="text-brand-muted">Produits consultés</dt>
@@ -111,6 +111,40 @@ export default async function AdminDashboardPage() {
                 <dd className="font-semibold text-brand-ink">{dashboard.collections}</dd>
               </div>
             </dl>
+            <div className="mt-6 grid gap-5 border-t border-brand-border pt-5">
+              <div>
+                <h3 className="text-sm font-semibold text-brand-ink">Origine des visites</h3>
+                {dashboard.trafficSources.length > 0 ? (
+                  <dl className="mt-3 space-y-3 text-sm">
+                    {dashboard.trafficSources.map((source) => (
+                      <div key={source.source} className="flex justify-between gap-4">
+                        <dt className="text-brand-muted">{source.source}</dt>
+                        <dd className="font-semibold text-brand-ink">{source.count}</dd>
+                      </div>
+                    ))}
+                  </dl>
+                ) : (
+                  <p className="mt-3 text-sm text-brand-muted">Aucune provenance enregistrée.</p>
+                )}
+              </div>
+              <div>
+                <h3 className="text-sm font-semibold text-brand-ink">Pages clés consultées</h3>
+                {dashboard.topPages.length > 0 ? (
+                  <dl className="mt-3 space-y-3 text-sm">
+                    {dashboard.topPages.map((page) => (
+                      <div key={page.path} className="flex justify-between gap-4">
+                        <dt className="min-w-0 truncate text-brand-muted">{page.path}</dt>
+                        <dd className="font-semibold text-brand-ink">{page.count}</dd>
+                      </div>
+                    ))}
+                  </dl>
+                ) : (
+                  <p className="mt-3 text-sm text-brand-muted">
+                    Aucune consultation enregistrée.
+                  </p>
+                )}
+              </div>
+            </div>
           </CardContent>
         </Card>
       </section>

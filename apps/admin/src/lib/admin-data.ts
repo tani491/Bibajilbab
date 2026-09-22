@@ -122,6 +122,8 @@ export interface DashboardData {
   favoriteAdds: number
   whatsappClicks: number
   whatsappRequests: number
+  trafficSources: Array<{ source: string; count: number }>
+  topPages: Array<{ path: string; count: number }>
   recentlyModified: Array<{ id: string; label: string; collection: string; updatedAt: string }>
 }
 
@@ -213,6 +215,92 @@ function productLowStock(product: { variants?: unknown }): boolean {
       item.stock <= item.lowStockThreshold
     )
   })
+}
+
+interface AnalyticsSummary {
+  productViews: number
+  cartAdds: number
+  favoriteAdds: number
+  whatsappClicks: number
+  trafficSources: Array<{ source: string; count: number }>
+  topPages: Array<{ path: string; count: number }>
+}
+
+function sourceFromMetadata(metadata: unknown): string {
+  if (!metadata || typeof metadata !== "object") {
+    return "Accès direct"
+  }
+
+  const source = (metadata as Record<string, unknown>).source
+
+  return typeof source === "string" && source.trim() ? source : "Accès direct"
+}
+
+function pathFromMetadata(metadata: unknown): string | null {
+  if (!metadata || typeof metadata !== "object") {
+    return null
+  }
+
+  const record = metadata as Record<string, unknown>
+  const path = typeof record.path === "string" ? record.path : undefined
+  const url = typeof record.url === "string" ? record.url : undefined
+
+  return path ?? url ?? null
+}
+
+function topCounts(map: Map<string, number>, limit: number) {
+  return Array.from(map, ([key, count]) => ({ key, count }))
+    .sort((left, right) => right.count - left.count || left.key.localeCompare(right.key))
+    .slice(0, limit)
+}
+
+async function getAnalyticsSummary(): Promise<AnalyticsSummary> {
+  if (!getFirebaseAdminStatus().available) {
+    return {
+      productViews: 0,
+      cartAdds: 0,
+      favoriteAdds: 0,
+      whatsappClicks: 0,
+      trafficSources: [],
+      topPages: [],
+    }
+  }
+
+  const snapshot = await getFirebaseAdminFirestore().collection("analyticsEvents").limit(500).get()
+  const sources = new Map<string, number>()
+  const pages = new Map<string, number>()
+  let productViews = 0
+  let cartAdds = 0
+  let favoriteAdds = 0
+  let whatsappClicks = 0
+
+  snapshot.docs.forEach((doc) => {
+    const data = doc.data()
+    const name = typeof data.name === "string" ? data.name : ""
+    const metadata = data.metadata
+    const source = sourceFromMetadata(metadata)
+    const path = pathFromMetadata(metadata)
+
+    sources.set(source, (sources.get(source) ?? 0) + 1)
+
+    if ((name === "page_view" || name === "product_view") && path) {
+      pages.set(path, (pages.get(path) ?? 0) + 1)
+    }
+
+    if (name === "product_view") productViews += 1
+    if (name === "cart_add") cartAdds += 1
+    if (name === "favorite_add") favoriteAdds += 1
+    if (name === "whatsapp_click") whatsappClicks += 1
+  })
+
+  return {
+    productViews,
+    cartAdds,
+    favoriteAdds,
+    whatsappClicks,
+    trafficSources: topCounts(sources, 5).map(({ key, count }) => ({ source: key, count })),
+    topPages: topCounts(pages, 5).map(({ key, count }) => ({ path: key, count })),
+  }
 }
 
 export async function listProducts(): Promise<AdminProductRow[]> {
@@ -542,11 +630,12 @@ export async function listTestimonials(): Promise<AdminTestimonialRow[]> {
 }
 
 export async function getDashboardData(): Promise<DashboardData> {
-  const [products, categories, collections, requests] = await Promise.all([
+  const [products, categories, collections, requests, analytics] = await Promise.all([
     listProducts(),
     listCategories(),
     listCollections(),
     listOrderRequests(),
+    getAnalyticsSummary(),
   ])
 
   const lowStock = products.filter((product) => product.stock > 0 && product.stock <= 2).length
@@ -559,11 +648,13 @@ export async function getDashboardData(): Promise<DashboardData> {
     lowStock,
     categories: categories.length,
     collections: collections.length,
-    productViews: 0,
-    cartAdds: 0,
-    favoriteAdds: 0,
-    whatsappClicks: 0,
+    productViews: analytics.productViews,
+    cartAdds: analytics.cartAdds,
+    favoriteAdds: analytics.favoriteAdds,
+    whatsappClicks: analytics.whatsappClicks,
     whatsappRequests: requests.length,
+    trafficSources: analytics.trafficSources,
+    topPages: analytics.topPages,
     recentlyModified: products
       .slice()
       .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))

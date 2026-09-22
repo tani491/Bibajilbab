@@ -30,9 +30,28 @@ export const seoMetadataSchema = z.object({
   noIndex: z.boolean().default(false),
 })
 
+export const productImageUrlSchema = z
+  .string()
+  .trim()
+  .min(1)
+  .refine(
+    (value) => {
+      try {
+        const url = new URL(value)
+
+        return ["http:", "https:", "data:", "blob:"].includes(url.protocol)
+      } catch {
+        return false
+      }
+    },
+    {
+      message: "L'URL de l'image doit etre une URL http(s), data: ou blob: valide.",
+    },
+  )
+
 export const productImageSchema = z.object({
   id: documentIdSchema.optional(),
-  url: z.string().url(),
+  url: productImageUrlSchema,
   cloudinaryPublicId: z.string().trim().min(1).optional(),
   alt: z.string().trim().min(1).max(140),
   width: z.number().int().positive().optional(),
@@ -86,6 +105,7 @@ export const productSchema = z
     careInstructions: z.string().trim().max(500).optional(),
     badge: z.string().trim().max(40).optional(),
     featured: z.boolean().default(false),
+    inStock: z.boolean().default(true),
     status: publicationStatusSchema.default("draft"),
     seo: seoMetadataSchema,
     createdAt: timestampLikeSchema,

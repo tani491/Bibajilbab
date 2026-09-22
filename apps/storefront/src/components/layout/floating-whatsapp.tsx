@@ -1,3 +1,6 @@
+"use client"
+
+import { trackStorefrontEvent } from "@/lib/analytics"
 import { buildGeneralWhatsAppUrl } from "@/lib/whatsapp"
 
 import { WhatsAppIcon } from "./whatsapp-icon"
@@ -7,6 +10,7 @@ export function FloatingWhatsApp() {
     <a
       href={buildGeneralWhatsAppUrl()}
       aria-label="Contacter BibaJilbab sur WhatsApp"
+      onClick={() => trackStorefrontEvent("whatsapp_click", { type: "floating_contact" })}
       className="group fixed bottom-6 right-6 z-40 flex h-14 w-14 items-center justify-center rounded-full border border-[#25D366]/25 bg-white text-[#25D366] shadow-soft transition hover:bg-[#F0FFF6] focus-visible:outline-none focus-visible:shadow-focus"
     >
       <WhatsAppIcon className="h-7 w-7" />

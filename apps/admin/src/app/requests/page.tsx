@@ -53,7 +53,9 @@ export default async function RequestsPage() {
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
                       <p className="font-semibold text-brand-ink">{request.customerName}</p>
-                      <p className="mt-1 text-xs text-brand-muted">{request.createdAt}</p>
+                      <p className="mt-1 whitespace-nowrap text-xs text-brand-muted">
+                        {request.createdAt}
+                      </p>
                     </div>
                     <Badge variant={request.status === "confirmed" ? "success" : "outline"}>
                       {request.status}
@@ -119,7 +121,9 @@ export default async function RequestsPage() {
                   <tr key={request.id} className="border-t border-brand-border align-top">
                     <td className="px-4 py-4">
                       <p className="font-semibold text-brand-ink">{request.customerName}</p>
-                      <p className="mt-1 text-xs text-brand-muted">{request.createdAt}</p>
+                      <p className="mt-1 whitespace-nowrap text-xs text-brand-muted">
+                        {request.createdAt}
+                      </p>
                     </td>
                     <td className="px-4 py-4 text-brand-muted">{request.phone}</td>
                     <td className="px-4 py-4 text-brand-muted">{request.city ?? "Non précisée"}</td>

@@ -17,16 +17,39 @@ interface ProductFormProps {
   heroSection?: AdminMainHeroSection | null | undefined
 }
 
+function defaultAvailabilityStatus(product: ProductFormProps["product"]) {
+  if (product?.badge === "Promotion") {
+    return "promotion"
+  }
+
+  if (product?.inStock === false) {
+    return "outOfStock"
+  }
+
+  if (
+    Array.isArray(product?.variants) &&
+    product.variants.length > 0 &&
+    product.variants.every((variant) => variant.stock <= 0 || variant.status === "inactive")
+  ) {
+    return "outOfStock"
+  }
+
+  return "inStock"
+}
+
 export function ProductForm({ product, categories, collections, heroSection }: ProductFormProps) {
   const isHeroProduct = Boolean(
     product?.id && heroSection?.productIds.some((productId) => productId === product.id),
   )
+  const availabilityStatus = defaultAvailabilityStatus(product)
 
   return (
     <Card>
       <CardContent>
         <ActionForm action={saveProductAction} submitLabel="Enregistrer le produit">
           <input type="hidden" name="id" defaultValue={product?.id ?? ""} />
+          <input type="hidden" name="sku" defaultValue={product?.sku ?? ""} />
+          <input type="hidden" name="status" defaultValue={product?.status ?? "published"} />
           <input type="hidden" name="tags" defaultValue={product?.tags?.join(", ") ?? ""} />
           <input type="hidden" name="material" defaultValue={product?.material ?? ""} />
           <input
@@ -57,16 +80,6 @@ export function ProductForm({ product, categories, collections, heroSection }: P
                   className="h-11 w-full rounded-card border border-brand-border px-3 text-sm outline-none transition focus:border-brand-plum focus:shadow-focus"
                 />
               </label>
-              <label className="text-sm font-medium text-brand-ink">
-                <span className="mb-2 block">Ancien prix facultatif</span>
-                <input
-                  name="oldPrice"
-                  type="number"
-                  min="0"
-                  defaultValue={product?.oldPrice ?? ""}
-                  className="h-11 w-full rounded-card border border-brand-border px-3 text-sm outline-none transition focus:border-brand-plum focus:shadow-focus"
-                />
-              </label>
               <label className="text-sm font-medium text-brand-ink md:col-span-2">
                 <span className="mb-2 block">Description courte</span>
                 <input
@@ -88,28 +101,15 @@ export function ProductForm({ product, categories, collections, heroSection }: P
 
             <section className="grid gap-4 rounded-card border border-brand-border bg-white p-4 md:col-span-2 md:grid-cols-2">
               <label className="text-sm font-medium text-brand-ink">
-                <span className="mb-2 block">Badge produit</span>
+                <span className="mb-2 block">Statut global</span>
                 <select
-                  name="badge"
-                  defaultValue={product?.badge ?? ""}
+                  name="availabilityStatus"
+                  defaultValue={availabilityStatus}
                   className="h-11 w-full rounded-card border border-brand-border bg-white px-3 text-sm outline-none transition focus:border-brand-plum focus:shadow-focus"
                 >
-                  <option value="">Aucun badge</option>
-                  <option value="Nouveau">Nouveau</option>
-                  <option value="Promotion">Promotion</option>
-                  <option value="Édition limitée">Édition limitée</option>
-                </select>
-              </label>
-              <label className="text-sm font-medium text-brand-ink">
-                <span className="mb-2 block">Visibilité</span>
-                <select
-                  name="status"
-                  defaultValue={product?.status ?? "draft"}
-                  className="h-11 w-full rounded-card border border-brand-border bg-white px-3 text-sm outline-none transition focus:border-brand-plum focus:shadow-focus"
-                >
-                  <option value="draft">Brouillon</option>
-                  <option value="published">Publié</option>
-                  <option value="archived">Archivé</option>
+                  <option value="inStock">En stock</option>
+                  <option value="outOfStock">En rupture</option>
+                  <option value="promotion">En promotion</option>
                 </select>
               </label>
             </section>

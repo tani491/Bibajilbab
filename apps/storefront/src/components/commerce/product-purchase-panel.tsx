@@ -9,6 +9,7 @@ import { createCartLine, validateProductSelection } from "@/lib/cart"
 import { WhatsAppIcon } from "@/components/layout/whatsapp-icon"
 import type { StoreProduct } from "@/lib/catalog"
 import { getProductStock } from "@/lib/catalog"
+import { trackStorefrontEvent } from "@/lib/analytics"
 import { formatFcfa } from "@/lib/money"
 import { buildProductInquiryMessage, buildWhatsAppUrl } from "@/lib/whatsapp"
 
@@ -205,7 +206,18 @@ export function ProductPurchasePanel({
               setSelectionNotice(
                 selectionValidation.message ?? "Sélectionnez une variante disponible.",
               )
+              return
             }
+
+            trackStorefrontEvent(
+              "whatsapp_click",
+              {
+                productId: product.id,
+                slug: product.slug,
+                type: "product_order",
+              },
+              product.id,
+            )
           }}
           className={buttonStyles({
             className: "bg-[#25D366] text-white hover:bg-[#1FB85A]",
@@ -221,6 +233,17 @@ export function ProductPurchasePanel({
         href={buildWhatsAppUrl(
           `Bonjour BibaJilbab, je souhaite obtenir des informations sur ${product.name} (${product.sku}).`,
         )}
+        onClick={() =>
+          trackStorefrontEvent(
+            "whatsapp_click",
+            {
+              productId: product.id,
+              slug: product.slug,
+              type: "product_information",
+            },
+            product.id,
+          )
+        }
       >
         Demande d'information
       </a>

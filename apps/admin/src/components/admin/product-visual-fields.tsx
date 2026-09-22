@@ -64,28 +64,6 @@ function normalizeImages(images: EditableImage[]): EditableImage[] {
   return images.map((image, index) => ({ ...image, position: index }))
 }
 
-function existingStockMap(variants: ProductVariant[] | undefined): Record<string, number> {
-  const map: Record<string, number> = {}
-
-  for (const variant of variants ?? []) {
-    map[variant.id] = variant.stock
-  }
-
-  return map
-}
-
-function existingStatusMap(
-  variants: ProductVariant[] | undefined,
-): Record<string, ProductVariant["status"]> {
-  const map: Record<string, ProductVariant["status"]> = {}
-
-  for (const variant of variants ?? []) {
-    map[variant.id] = variant.status
-  }
-
-  return map
-}
-
 function variantKey(sizeId: string | undefined, colorId: string | undefined): string {
   return [sizeId, colorId].filter(Boolean).join("-") || "standard"
 }
@@ -113,7 +91,7 @@ function imageFromUpload(upload: UploadResult, alt: string, position: number): E
 
 function friendlyUploadError(message: string): string {
   return message.toLowerCase().includes("cloudinary")
-    ? "Aperçu local ajouté. La configuration Cloudinary sera nécessaire pour publier les images en production."
+    ? "Aperçu local conservé. Ajoutez une URL distante ou configurez Cloudinary pour enregistrer l'image."
     : message
 }
 
@@ -145,8 +123,7 @@ export function ProductVisualFields({
     badge?: string | undefined
   }
 }) {
-  const initialVariants = product?.variants ?? []
-  const [baseSku, setBaseSku] = useState(product?.sku ?? "")
+  const baseSku = product?.sku ?? "BJ"
   const [images, setImages] = useState<EditableImage[]>(() =>
     (product?.images ?? []).map((image, index) => ({
       ...image,
@@ -163,12 +140,8 @@ export function ProductVisualFields({
   )
   const [newColorName, setNewColorName] = useState("")
   const [newColorHex, setNewColorHex] = useState("#E9B7C5")
-  const [stockByVariant, setStockByVariant] = useState<Record<string, number>>(() =>
-    existingStockMap(product?.variants),
-  )
-  const [statusByVariant, setStatusByVariant] = useState<Record<string, ProductVariant["status"]>>(
-    () => existingStatusMap(initialVariants),
-  )
+  const [manualImageUrl, setManualImageUrl] = useState("")
+  const [manualImageAlt, setManualImageAlt] = useState("")
   const [uploadError, setUploadError] = useState("")
 
   const variants = useMemo<ProductVariant[]>(() => {
@@ -180,8 +153,6 @@ export function ProductVisualFields({
       for (const color of colorOptions) {
         const existingVariant = findExistingVariant(product?.variants, size?.id, color?.id)
         const id = existingVariant?.id ?? variantKey(size?.id, color?.id)
-        const stock = stockByVariant[id] ?? 0
-        const selectedStatus = stock > 0 ? "active" : (statusByVariant[id] ?? existingVariant?.status ?? "inactive")
 
         nextVariants.push({
           id,
@@ -190,15 +161,15 @@ export function ProductVisualFields({
             [baseSku || "BJ", size?.id, color?.id].filter(Boolean).join("-").toUpperCase(),
           sizeId: size?.id,
           colorId: color?.id,
-          stock,
+          stock: existingVariant?.stock ?? 0,
           lowStockThreshold: existingVariant?.lowStockThreshold ?? 2,
-          status: selectedStatus,
+          status: existingVariant?.status ?? "active",
         })
       }
     }
 
     return nextVariants
-  }, [baseSku, colors, product?.variants, sizes, statusByVariant, stockByVariant])
+  }, [baseSku, colors, product?.variants, sizes])
 
   const selectedStandardSizeIds = new Set(sizes.map((size) => size.id))
   const sizesJson = JSON.stringify(sizes)
@@ -273,20 +244,17 @@ export function ProductVisualFields({
       const message =
         error instanceof Error
           ? friendlyUploadError(error.message)
-          : "Aperçu local ajouté. La configuration Cloudinary sera nécessaire pour publier les images en production."
-      const isLocalPreview =
-        message.toLowerCase().includes("aperçu local") ||
-        message.toLowerCase().includes("cloudinary")
-      setUploadError(isLocalPreview ? "" : message)
+          : "Aperçu local conservé. Ajoutez une URL distante ou configurez Cloudinary pour enregistrer l'image."
+      setUploadError(message)
       setImages((current) =>
         current.map((image) =>
           pendingImages.some((pending) => pending.localId === image.localId)
             ? {
                 ...image,
                 id: image.localId,
-                url: image.previewUrl ?? image.url,
+                url: "",
                 uploading: false,
-                error: isLocalPreview ? undefined : message,
+                error: message,
               }
             : image,
         ),
@@ -347,6 +315,41 @@ export function ProductVisualFields({
     setNewColorName("")
   }
 
+  function addManualImage() {
+    const url = manualImageUrl.trim()
+
+    if (!url) {
+      return
+    }
+
+    if (images.length >= maxProductImages) {
+      setUploadError("La galerie est limitée à 4 photos.")
+      return
+    }
+
+    try {
+      new URL(url)
+    } catch {
+      setUploadError("Collez une URL d'image valide.")
+      return
+    }
+
+    setUploadError("")
+    setImages((current) =>
+      normalizeImages([
+        ...current,
+        {
+          localId: createLocalId("manual"),
+          url,
+          alt: manualImageAlt.trim() || "Image produit",
+          position: current.length,
+        },
+      ]),
+    )
+    setManualImageUrl("")
+    setManualImageAlt("")
+  }
+
   return (
     <section className="md:col-span-2">
       <input type="hidden" name="imagesJson" value={visibleImagesJson(images)} />
@@ -394,6 +397,24 @@ export function ProductVisualFields({
               {uploadError}
             </p>
           ) : null}
+
+          <div className="grid gap-3 sm:grid-cols-[1fr_1fr_auto]">
+            <input
+              value={manualImageUrl}
+              onChange={(event) => setManualImageUrl(event.target.value)}
+              placeholder="URL HTTPS, Firebase ou Cloudinary"
+              className="h-11 rounded-card border border-brand-border px-3 text-sm"
+            />
+            <input
+              value={manualImageAlt}
+              onChange={(event) => setManualImageAlt(event.target.value)}
+              placeholder="Description de la photo"
+              className="h-11 rounded-card border border-brand-border px-3 text-sm"
+            />
+            <Button type="button" variant="outline" onClick={addManualImage}>
+              Ajouter
+            </Button>
+          </div>
 
           {images.length > 0 ? (
             <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
@@ -578,75 +599,6 @@ export function ProductVisualFields({
               ))}
             </div>
           ) : null}
-        </div>
-
-        <div className="grid gap-4 rounded-card border border-brand-border bg-white p-4">
-          <div className="grid gap-4 md:grid-cols-2">
-            <label className="text-sm font-medium text-brand-ink">
-              <span className="mb-2 block">Référence unique</span>
-              <input
-                name="sku"
-                value={baseSku}
-                onChange={(event) => setBaseSku(event.target.value)}
-                required
-                className="h-11 w-full rounded-card border border-brand-border px-3 text-sm"
-              />
-            </label>
-          </div>
-          <div>
-            <p className="text-base font-semibold text-brand-ink">Stock par variante</p>
-            <p className="mt-1 text-sm text-brand-muted">
-              Les variantes sont générées automatiquement à partir des tailles et couleurs.
-            </p>
-          </div>
-          <div className="grid gap-3">
-            {variants.map((variant) => {
-              const size = sizes.find((item) => item.id === variant.sizeId)
-              const color = colors.find((item) => item.id === variant.colorId)
-
-              return (
-                <label
-                  key={variant.id}
-                  className="grid gap-3 rounded-card border border-brand-border p-3 sm:grid-cols-[1fr_140px_150px]"
-                >
-                  <span className="text-sm font-medium text-brand-ink">
-                    {[size?.label, color?.name].filter(Boolean).join(" / ") || "Variante"}
-                    <span className="mt-1 block text-xs font-normal text-brand-muted">
-                      {variant.sku}
-                    </span>
-                  </span>
-                  <input
-                    type="number"
-                    min="0"
-                    value={variant.stock}
-                    onChange={(event) =>
-                      setStockByVariant((current) => ({
-                        ...current,
-                        [variant.id]: Math.max(0, Number.parseInt(event.target.value, 10) || 0),
-                      }))
-                    }
-                    className="h-11 rounded-card border border-brand-border px-3 text-sm disabled:bg-brand-blush"
-                    aria-label="Stock"
-                  />
-                  <select
-                    value={variant.status}
-                    onChange={(event) => {
-                      const nextStatus = event.target.value as ProductVariant["status"]
-                      setStatusByVariant((current) => ({
-                        ...current,
-                        [variant.id]: nextStatus,
-                      }))
-                    }}
-                    className="h-11 rounded-card border border-brand-border bg-white px-3 text-sm"
-                    aria-label="Statut de la variante"
-                  >
-                    <option value="active">En stock</option>
-                    <option value="inactive">Rupture</option>
-                  </select>
-                </label>
-              )
-            })}
-          </div>
         </div>
       </div>
     </section>

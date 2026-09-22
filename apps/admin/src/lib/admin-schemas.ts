@@ -48,8 +48,7 @@ const optionalCsvListSchema = z
   )
 
 const optionalMoneyStringSchema = z
-  .string()
-  .trim()
+  .preprocess((value) => (value === undefined ? "" : value), z.string().trim())
   .transform((value) => {
     const amount = value ? Number.parseInt(value, 10) : 0
 
@@ -112,23 +111,26 @@ const optionalSwitchSchema = z
   .preprocess((value) => (value === "" ? undefined : value), z.enum(["on"]).optional())
   .transform(Boolean)
 
+export const productAvailabilityStatusSchema = z.enum(["inStock", "outOfStock", "promotion"])
+
 export const productFormSchema = z.object({
   id: z.string().trim().optional(),
   name: z.string().trim().min(1).max(120),
   slug: optionalStringSchema,
-  sku: z.string().trim().min(1).max(80),
+  sku: optionalStringSchema,
   shortDescription: z.string().trim().min(1).max(220),
   longDescription: optionalStringSchema,
   price: moneyStringSchema,
   oldPrice: optionalMoneyStringSchema,
-  categoryId: z.string().trim().min(1),
+  categoryId: optionalStringSchema,
   collectionIds: csvListSchema,
   tags: optionalCsvListSchema,
   material: z.string().trim().max(160).optional(),
   careInstructions: z.string().trim().max(500).optional(),
   badge: z.string().trim().max(40).optional(),
   featured: optionalSwitchSchema,
-  status: z.enum(["draft", "published", "archived"]),
+  status: z.enum(["draft", "published", "archived"]).default("published"),
+  availabilityStatus: productAvailabilityStatusSchema.default("inStock"),
   seoTitle: optionalStringSchema,
   seoDescription: optionalStringSchema,
   imagesJson: z.string().trim().min(2),
@@ -140,36 +142,90 @@ export const productFormSchema = z.object({
   heroMediaJson: z.string().trim().optional(),
 })
 
-function parseJsonArray<T>(value: string, schema: z.ZodType<T>): T[] {
+function parseJsonArray<TSchema extends z.ZodTypeAny>(
+  value: string,
+  schema: TSchema,
+): z.output<TSchema>[] {
   const parsed: unknown = JSON.parse(value)
 
   return z.array(schema).parse(parsed)
 }
 
+function skuFromSlug(slug: string): string {
+  return `BJ-${slug.toUpperCase().replace(/[^A-Z0-9]+/g, "-").slice(0, 56)}`.replace(
+    /-+$/u,
+    "",
+  )
+}
+
+function variantSku(baseSku: string, sizeId: string | undefined, colorId: string | undefined) {
+  return [baseSku, sizeId, colorId].filter(Boolean).join("-").toUpperCase()
+}
+
+function normalizeProductVariants({
+  variants,
+  baseSku,
+  availabilityStatus,
+}: {
+  variants: z.output<typeof productVariantSchema>[]
+  baseSku: string
+  availabilityStatus: z.infer<typeof productAvailabilityStatusSchema>
+}) {
+  const visible = availabilityStatus !== "outOfStock"
+  const sourceVariants =
+    variants.length > 0
+      ? variants
+      : [
+          {
+            id: "standard",
+            sku: baseSku,
+            stock: visible ? 1 : 0,
+            lowStockThreshold: 0,
+            status: visible ? "active" : "inactive",
+          } satisfies z.infer<typeof productVariantSchema>,
+        ]
+
+  return sourceVariants.map((variant) => ({
+    ...variant,
+    sku: variant.sku?.trim() || variantSku(baseSku, variant.sizeId, variant.colorId),
+    stock: visible ? Math.max(variant.stock, 1) : 0,
+    lowStockThreshold: variant.lowStockThreshold ?? 0,
+    status: visible ? "active" : "inactive",
+  }))
+}
+
 export function productFromFormData(formData: FormData) {
   const parsed = productFormSchema.parse(Object.fromEntries(formData))
   const now = new Date().toISOString()
+  const slug = slugify(parsed.slug ?? parsed.name)
+  const sku = parsed.sku ?? skuFromSlug(slug)
+  const variants = normalizeProductVariants({
+    variants: parseJsonArray(parsed.variantsJson, productVariantSchema),
+    baseSku: sku,
+    availabilityStatus: parsed.availabilityStatus,
+  })
   const product = productSchema.parse({
     id: parsed.id || undefined,
     name: parsed.name,
-    slug: slugify(parsed.slug ?? parsed.name),
-    sku: parsed.sku,
+    slug,
+    sku,
     shortDescription: parsed.shortDescription,
     longDescription: parsed.longDescription ?? parsed.shortDescription,
     price: parsed.price,
-    oldPrice: parsed.oldPrice,
+    oldPrice: undefined,
     currency: "XOF",
-    categoryId: parsed.categoryId,
+    categoryId: parsed.categoryId ?? "non-classe",
     collectionIds: parsed.collectionIds,
     tags: parsed.tags,
     images: parseJsonArray(parsed.imagesJson, productImageSchema),
     sizes: parseJsonArray(parsed.sizesJson, productSizeSchema),
     colors: parseJsonArray(parsed.colorsJson, productColorSchema),
-    variants: parseJsonArray(parsed.variantsJson, productVariantSchema),
+    variants,
     material: parsed.material || undefined,
     careInstructions: parsed.careInstructions || undefined,
-    badge: parsed.badge || undefined,
+    badge: parsed.availabilityStatus === "promotion" ? "Promotion" : undefined,
     featured: parsed.featured,
+    inStock: parsed.availabilityStatus !== "outOfStock",
     status: parsed.status,
     seo: {
       metaTitle: truncate(parsed.seoTitle ?? parsed.name, 70),

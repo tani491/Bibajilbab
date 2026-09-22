@@ -146,19 +146,22 @@ export async function saveProductAction(
     const existingCreatedAt =
       existing && typeof existing.createdAt === "string" ? existing.createdAt : product.createdAt
     const now = new Date().toISOString()
+    const productPayload: Record<string, unknown> = withoutUndefined({
+      ...product,
+      id: documentId,
+      createdAt: existingCreatedAt,
+      updatedAt: now,
+    })
+
+    productPayload.oldPrice = FieldValue.delete()
+    if (!product.badge) {
+      productPayload.badge = FieldValue.delete()
+    }
 
     await db
       .collection("products")
       .doc(documentId)
-      .set(
-        withoutUndefined({
-          ...product,
-          id: documentId,
-          createdAt: existingCreatedAt,
-          updatedAt: now,
-        }),
-        { merge: true },
-      )
+      .set(productPayload, { merge: true })
 
     if (hero.enabled) {
       const heroDoc = await db.collection("homepageSections").doc("main-hero").get()

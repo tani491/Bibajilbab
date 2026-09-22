@@ -24,10 +24,6 @@ const defaultCollections: ProductTaxonomyOption[] = [
   { id: "nouveautes", name: "Nouveautés", slug: "nouveautes", type: "permanent" },
 ]
 
-function optionLabel(option: ProductTaxonomyOption): string {
-  return option.name
-}
-
 export function ProductTaxonomyFields({
   categories,
   collections,
@@ -41,9 +37,7 @@ export function ProductTaxonomyFields({
 }) {
   const categoryOptions = categories.length > 0 ? categories : defaultCategories
   const collectionOptions = collections.length > 0 ? collections : defaultCollections
-  const [selectedCategory, setSelectedCategory] = useState(
-    defaultCategoryId || categoryOptions[0]?.id || "",
-  )
+  const selectedCategory = defaultCategoryId || categoryOptions[0]?.id || "non-classe"
   const [selectedCollections, setSelectedCollections] = useState<string[]>(
     defaultCollectionIds?.length ? defaultCollectionIds : [],
   )
@@ -55,30 +49,9 @@ export function ProductTaxonomyFields({
   }
 
   return (
-    <section className="grid gap-4 md:col-span-2 md:grid-cols-2">
+    <section className="grid gap-4 md:col-span-2">
+      <input type="hidden" name="categoryId" value={selectedCategory} />
       <input type="hidden" name="collectionIds" value={selectedCollections.join(", ")} />
-
-      <div className="rounded-card border border-brand-border bg-white p-4">
-        <div>
-          <div>
-            <p className="text-sm font-semibold text-brand-ink">Catégorie</p>
-            <p className="mt-1 text-xs text-brand-muted">Famille principale du vêtement.</p>
-          </div>
-        </div>
-        <select
-          name="categoryId"
-          value={selectedCategory}
-          onChange={(event) => setSelectedCategory(event.target.value)}
-          required
-          className="mt-4 h-11 w-full rounded-card border border-brand-border bg-white px-3 text-sm outline-none transition focus:border-brand-plum focus:shadow-focus"
-        >
-          {categoryOptions.map((category) => (
-            <option key={category.id} value={category.id}>
-              {optionLabel(category)}
-            </option>
-          ))}
-        </select>
-      </div>
 
       <div className="rounded-card border border-brand-border bg-white p-4">
         <div>

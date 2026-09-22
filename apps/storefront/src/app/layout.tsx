@@ -7,6 +7,7 @@ import {
   WebsiteStructuredData,
 } from "@/components/commerce/structured-data"
 import { StoreProvider } from "@/components/commerce/store-provider"
+import { StorefrontAnalytics } from "@/components/commerce/storefront-analytics"
 import { FloatingWhatsApp } from "@/components/layout/floating-whatsapp"
 import { SiteFooter } from "@/components/layout/site-footer"
 import { SiteHeader } from "@/components/layout/site-header"
@@ -109,6 +110,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
         <OrganizationStructuredData siteUrl={publicEnv.urls.site} />
         <WebsiteStructuredData siteUrl={publicEnv.urls.site} />
         <StoreProvider>
+          <StorefrontAnalytics />
           <SiteHeader announcement={announcement} />
           {children}
           <SiteFooter />
