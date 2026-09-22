@@ -28,8 +28,17 @@ interface UploadResult {
   height?: number | undefined
 }
 
-interface EditableImage extends ProductImage {
+type ProductImageValue = ProductImage | string
+
+interface EditableImage {
   localId: string
+  id?: string | undefined
+  url: string
+  cloudinaryPublicId?: string | undefined
+  alt: string
+  width?: number | undefined
+  height?: number | undefined
+  position: number
   previewUrl?: string | undefined
   uploading?: boolean | undefined
   error?: string | undefined
@@ -62,6 +71,23 @@ function slugify(value: string): string {
 
 function normalizeImages(images: EditableImage[]): EditableImage[] {
   return images.map((image, index) => ({ ...image, position: index }))
+}
+
+function editableImageFromValue(image: ProductImageValue, index: number): EditableImage {
+  if (typeof image === "string") {
+    return {
+      localId: `image-${index}`,
+      url: image,
+      alt: "Image produit",
+      position: index,
+    }
+  }
+
+  return {
+    ...image,
+    localId: image.id ?? `image-${index}`,
+    position: index,
+  }
 }
 
 function draftSize(value: string): ProductSize | null {
@@ -116,26 +142,22 @@ function friendlyUploadError(message: string): string {
 }
 
 function visibleImagesJson(images: EditableImage[]): string {
-  const persistedImages: ProductImage[] = normalizeImages(images)
-    .filter((image) => image.url && !image.uploading)
-    .map((image, position) => ({
-      id: image.id,
-      url: image.url,
-      cloudinaryPublicId: image.cloudinaryPublicId,
-      alt: image.alt || "Image produit",
-      width: image.width,
-      height: image.height,
-      position,
-    }))
+  const persistedImages = normalizeImages(images)
+    .filter((image) => image.url.trim() && !image.uploading)
+    .map((image) => image.url.trim())
 
   return JSON.stringify(persistedImages)
+}
+
+function isLocalPreviewSrc(src: string): boolean {
+  return src.startsWith("blob:") || src.startsWith("data:")
 }
 
 export function ProductVisualFields({
   product,
 }: {
   product?: {
-    images?: ProductImage[] | undefined
+    images?: ProductImageValue[] | undefined
     sizes?: ProductSize[] | undefined
     colors?: ProductColor[] | undefined
     variants?: ProductVariant[] | undefined
@@ -145,11 +167,7 @@ export function ProductVisualFields({
 }) {
   const baseSku = product?.sku ?? "BJ"
   const [images, setImages] = useState<EditableImage[]>(() =>
-    (product?.images ?? []).map((image, index) => ({
-      ...image,
-      localId: image.id ?? `image-${index}`,
-      position: index,
-    })),
+    (product?.images ?? []).map((image, index) => editableImageFromValue(image, index)),
   )
   const [sizes, setSizes] = useState<ProductSize[]>(
     product?.sizes ?? [],
@@ -406,14 +424,22 @@ export function ProductVisualFields({
                 >
                   <div className="relative aspect-[4/3] overflow-hidden rounded-card bg-brand-blush">
                     {image.url || image.previewUrl ? (
-                      <Image
-                        src={image.url || image.previewUrl || ""}
-                        alt={image.alt}
-                        fill
-                        sizes="(max-width: 768px) 50vw, 280px"
-                        unoptimized
-                        className="h-full w-full object-cover"
-                      />
+                      isLocalPreviewSrc(image.url || image.previewUrl || "") ? (
+                        <img
+                          src={image.url || image.previewUrl || ""}
+                          alt={image.alt}
+                          className="h-full w-full object-cover"
+                        />
+                      ) : (
+                        <Image
+                          src={image.url || image.previewUrl || ""}
+                          alt={image.alt}
+                          fill
+                          sizes="(max-width: 768px) 50vw, 280px"
+                          unoptimized
+                          className="h-full w-full object-cover"
+                        />
+                      )
                     ) : (
                       <div className="flex h-full items-center justify-center text-xs text-brand-muted">
                         Image en attente

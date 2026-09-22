@@ -408,13 +408,7 @@ export async function importProductsCsvAction(
           categoryId: String(row.categoryId ?? "non-classe"),
           collectionIds: [],
           tags: [],
-          images: [
-            {
-              url: imageUrl,
-              alt: imageAlt,
-              position: 0,
-            },
-          ],
+          images: [imageUrl],
           sizes: [],
           colors: [],
           variants: [],

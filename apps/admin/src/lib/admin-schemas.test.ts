@@ -45,7 +45,9 @@ describe("admin form schemas", () => {
 
     expect(product.status).toBe("published")
     expect(product.seo.noIndex).toBe(false)
-    expect(product.images[0]?.alt).toBe("Djilbab test")
+    expect(product.images[0]).toBe(
+      "https://res.cloudinary.com/bibajilbab/image/upload/v1/test.jpg",
+    )
     expect(product.variants[0]?.stock).toBe(3)
   })
 
@@ -62,11 +64,9 @@ describe("admin form schemas", () => {
       }),
     )
 
-    expect(product.images[0]).toMatchObject({
-      url: "https://res.cloudinary.com/bibajilbab/image/upload/v1/simple.jpg",
-      alt: "Image produit",
-      position: 0,
-    })
+    expect(product.images[0]).toBe(
+      "https://res.cloudinary.com/bibajilbab/image/upload/v1/simple.jpg",
+    )
   })
 
   it("validates site settings and WhatsApp request statuses", () => {

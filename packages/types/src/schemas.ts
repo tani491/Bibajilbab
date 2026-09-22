@@ -33,24 +33,7 @@ export const seoMetadataSchema = z.object({
 export const productImageUrlSchema = z
   .string()
   .trim()
-  .min(1)
-  .refine(
-    (value) => {
-      try {
-        const url = new URL(value)
-
-        return (
-          ["http:", "https:", "blob:"].includes(url.protocol) ||
-          (url.protocol === "data:" && value.startsWith("data:image/"))
-        )
-      } catch {
-        return false
-      }
-    },
-    {
-      message: "URL d'image invalide. Utilisez une URL HTTPS, Cloudinary/Firebase, data:image ou blob.",
-    },
-  )
+  .min(1, "URL d'image invalide")
 
 export const productImageSchema = z.object({
   id: documentIdSchema.optional(),
@@ -100,7 +83,10 @@ export const productSchema = z
     categoryId: documentIdSchema,
     collectionIds: z.array(documentIdSchema).default([]),
     tags: z.array(z.string().trim().min(1).max(40)).default([]),
-    images: z.array(productImageSchema).min(1, "Au moins une photo est requise").max(4),
+    images: z
+      .array(productImageUrlSchema)
+      .min(1, "Ajoutez au moins une image au produit")
+      .max(4),
     sizes: z.array(productSizeSchema).default([]),
     colors: z.array(productColorSchema).default([]),
     variants: z.array(productVariantSchema).default([]),

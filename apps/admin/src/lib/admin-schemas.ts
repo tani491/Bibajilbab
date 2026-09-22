@@ -8,6 +8,7 @@ import {
   mediaSchema,
   productColorSchema,
   productImageSchema,
+  productImageUrlSchema,
   productSchema,
   productSizeSchema,
   productVariantSchema,
@@ -151,18 +152,19 @@ function parseJsonArray<TSchema extends z.ZodTypeAny>(
   return z.array(schema).parse(parsed)
 }
 
-function normalizeProductImageInput(value: unknown, position: number) {
+function productImageUrlFromInput(value: unknown) {
   if (typeof value === "string") {
-    return { url: value, alt: "Image produit", position }
+    return value
   }
 
   if (value && typeof value === "object") {
-    const image = value as { position?: unknown }
+    const image = value as { secure_url?: unknown; src?: unknown; url?: unknown }
 
-    return {
-      ...image,
-      position: typeof image.position === "number" ? image.position : position,
-    }
+    return typeof image.url === "string"
+      ? image.url
+      : typeof image.secure_url === "string"
+        ? image.secure_url
+        : image.src
   }
 
   return value
@@ -174,7 +176,8 @@ function parseProductImages(value: string) {
     const images = z
       .array(z.unknown())
       .parse(parsed)
-      .map((image, index) => productImageSchema.parse(normalizeProductImageInput(image, index)))
+      .map(productImageUrlFromInput)
+      .map((image) => productImageUrlSchema.parse(image))
 
     if (images.length === 0) {
       throw new Error(

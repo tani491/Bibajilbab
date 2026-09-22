@@ -15,12 +15,7 @@ describe("productSchema", () => {
       categoryId: "khimars",
       collectionIds: ["nouveautes"],
       tags: ["khimar", "pudeur"],
-      images: [
-        {
-          url: "https://res.cloudinary.com/bibajilbab/image/upload/v1/khimar.jpg",
-          alt: "Khimar rose poudré sur cintre",
-        },
-      ],
+      images: ["https://res.cloudinary.com/bibajilbab/image/upload/v1/khimar.jpg"],
       sizes: [{ id: "standard", label: "Standard" }],
       colors: [{ id: "rose-poudre", name: "Rose poudre", hex: "#E9B7C5" }],
       variants: [
@@ -59,12 +54,7 @@ describe("productSchema", () => {
       price: 20000,
       oldPrice: 15000,
       categoryId: "djilbabs",
-      images: [
-        {
-          url: "https://res.cloudinary.com/bibajilbab/image/upload/v1/djilbab.jpg",
-          alt: "Djilbab noir",
-        },
-      ],
+      images: ["https://res.cloudinary.com/bibajilbab/image/upload/v1/djilbab.jpg"],
       seo: {
         metaTitle: "Djilbab simple | BibaJilbab",
         metaDescription: "Djilbab ample et confortable chez BibaJilbab.",
@@ -89,13 +79,7 @@ describe("productSchema", () => {
       categoryId: "djilbabs",
       collectionIds: [],
       tags: [],
-      images: [
-        {
-          url: "https://res.cloudinary.com/bibajilbab/image/upload/v1/promotion.jpg",
-          alt: "Produit test",
-          position: 0,
-        },
-      ],
+      images: ["https://res.cloudinary.com/bibajilbab/image/upload/v1/promotion.jpg"],
       sizes: [],
       colors: [],
       variants: [],
@@ -125,18 +109,7 @@ describe("productSchema", () => {
       categoryId: "djilbabs",
       collectionIds: [],
       tags: [],
-      images: [
-        {
-          url: "data:image/png;base64,iVBORw0KGgo=",
-          alt: "Aperçu local",
-          position: 0,
-        },
-        {
-          url: "blob:http://localhost:3001/preview-image",
-          alt: "Aperçu blob",
-          position: 1,
-        },
-      ],
+      images: ["data:image/png;base64,iVBORw0KGgo=", "blob:http://localhost:3001/preview-image"],
       sizes: [],
       colors: [],
       variants: [],

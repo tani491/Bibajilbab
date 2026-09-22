@@ -114,6 +114,7 @@ function normalizeImageCandidate(value: unknown, fallbackAlt: string, position: 
 
 function toStoreProduct(value: unknown): StoreProduct | null {
   const source = value && typeof value === "object" ? value : null
+  let displayImages: ProductImage[] = []
   const normalizedValue = source
     ? {
         ...source,
@@ -132,10 +133,14 @@ function toStoreProduct(value: unknown): StoreProduct | null {
           const rawImages = Array.isArray(productRecord.images)
             ? productRecord.images
             : [productRecord.coverImage, productRecord.imageUrl].filter(Boolean)
-          const images = rawImages
+          displayImages = rawImages
             .map((image, position) => normalizeImageCandidate(image, name, position))
             .filter((image): image is Record<string, unknown> => Boolean(image))
-            .filter((image) => productImageSchema.safeParse(image).success)
+            .flatMap((image) => {
+              const parsed = productImageSchema.safeParse(image)
+
+              return parsed.success ? [parsed.data] : []
+            })
 
           return {
             ...productRecord,
@@ -145,7 +150,7 @@ function toStoreProduct(value: unknown): StoreProduct | null {
                 ? productRecord.collectionSlugs
                 : [],
             tags: Array.isArray(productRecord.tags) ? productRecord.tags : [],
-            images,
+            images: displayImages.map((image) => image.url),
             sizes: Array.isArray(productRecord.sizes) ? productRecord.sizes : [],
             colors: Array.isArray(productRecord.colors) ? productRecord.colors : [],
             variants: Array.isArray(productRecord.variants) ? productRecord.variants : [],
@@ -202,7 +207,7 @@ function toStoreProduct(value: unknown): StoreProduct | null {
     status: product.status,
     material: product.material ?? "",
     careInstructions: product.careInstructions ?? "",
-    images: [...product.images].sort((left, right) => left.position - right.position).map(mapImage),
+    images: [...displayImages].sort((left, right) => left.position - right.position).map(mapImage),
     sizes: product.sizes.map((size) => ({
       id: size.id,
       label: size.label,
