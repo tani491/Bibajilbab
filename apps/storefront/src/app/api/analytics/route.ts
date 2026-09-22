@@ -28,7 +28,7 @@ export async function POST(request: Request) {
       createdAt: new Date().toISOString(),
     })
 
-    await getFirebaseAdminFirestore().collection("analyticsEvents").add(event)
+    await getFirebaseAdminFirestore().collection("analytics").add(event)
 
     return new NextResponse(null, { status: 204 })
   } catch (error) {

@@ -64,6 +64,26 @@ function normalizeImages(images: EditableImage[]): EditableImage[] {
   return images.map((image, index) => ({ ...image, position: index }))
 }
 
+function draftSize(value: string): ProductSize | null {
+  const label = value.trim()
+
+  return label ? { id: slugify(label), label } : null
+}
+
+function draftColor(name: string, hex: string): ProductColor | null {
+  const trimmedName = name.trim()
+
+  return trimmedName ? { id: slugify(trimmedName), name: trimmedName, hex } : null
+}
+
+function appendUniqueById<T extends { id: string }>(items: T[], item: T | null): T[] {
+  if (!item || items.some((current) => current.id === item.id)) {
+    return items
+  }
+
+  return [...items, item]
+}
+
 function variantKey(sizeId: string | undefined, colorId: string | undefined): string {
   return [sizeId, colorId].filter(Boolean).join("-") || "standard"
 }
@@ -95,7 +115,34 @@ function friendlyUploadError(message: string): string {
     : message
 }
 
-function visibleImagesJson(images: EditableImage[]): string {
+function isSupportedImageUrl(value: string): boolean {
+  try {
+    const url = new URL(value)
+
+    return (
+      ["http:", "https:", "blob:"].includes(url.protocol) ||
+      (url.protocol === "data:" && value.startsWith("data:image/"))
+    )
+  } catch {
+    return false
+  }
+}
+
+function draftImage(url: string, alt: string, position: number): ProductImage | null {
+  const trimmedUrl = url.trim()
+
+  if (!trimmedUrl || !isSupportedImageUrl(trimmedUrl)) {
+    return null
+  }
+
+  return {
+    url: trimmedUrl,
+    alt: alt.trim() || "Image produit",
+    position,
+  }
+}
+
+function visibleImagesJson(images: EditableImage[], manualUrl: string, manualAlt: string): string {
   const persistedImages: ProductImage[] = normalizeImages(images)
     .filter((image) => image.url && !image.uploading)
     .map((image, position) => ({
@@ -107,8 +154,12 @@ function visibleImagesJson(images: EditableImage[]): string {
       height: image.height,
       position,
     }))
+  const manualImage =
+    persistedImages.length < maxProductImages
+      ? draftImage(manualUrl, manualAlt, persistedImages.length)
+      : null
 
-  return JSON.stringify(persistedImages)
+  return JSON.stringify(manualImage ? [...persistedImages, manualImage] : persistedImages)
 }
 
 export function ProductVisualFields({
@@ -143,10 +194,18 @@ export function ProductVisualFields({
   const [manualImageUrl, setManualImageUrl] = useState("")
   const [manualImageAlt, setManualImageAlt] = useState("")
   const [uploadError, setUploadError] = useState("")
+  const submittedSizes = useMemo(
+    () => appendUniqueById(sizes, draftSize(customSize)),
+    [customSize, sizes],
+  )
+  const submittedColors = useMemo(
+    () => appendUniqueById(colors, draftColor(newColorName, newColorHex)),
+    [colors, newColorHex, newColorName],
+  )
 
   const variants = useMemo<ProductVariant[]>(() => {
-    const sizeOptions = sizes.length > 0 ? sizes : [undefined]
-    const colorOptions = colors.length > 0 ? colors : [undefined]
+    const sizeOptions = submittedSizes.length > 0 ? submittedSizes : [undefined]
+    const colorOptions = submittedColors.length > 0 ? submittedColors : [undefined]
     const nextVariants: ProductVariant[] = []
 
     for (const size of sizeOptions) {
@@ -169,11 +228,11 @@ export function ProductVisualFields({
     }
 
     return nextVariants
-  }, [baseSku, colors, product?.variants, sizes])
+  }, [baseSku, product?.variants, submittedColors, submittedSizes])
 
   const selectedStandardSizeIds = new Set(sizes.map((size) => size.id))
-  const sizesJson = JSON.stringify(sizes)
-  const colorsJson = JSON.stringify(colors)
+  const sizesJson = JSON.stringify(submittedSizes)
+  const colorsJson = JSON.stringify(submittedColors)
   const variantsJson = JSON.stringify(variants)
 
   async function uploadFiles(fileList: FileList | File[]) {
@@ -352,7 +411,11 @@ export function ProductVisualFields({
 
   return (
     <section className="md:col-span-2">
-      <input type="hidden" name="imagesJson" value={visibleImagesJson(images)} />
+      <input
+        type="hidden"
+        name="imagesJson"
+        value={visibleImagesJson(images, manualImageUrl, manualImageAlt)}
+      />
       <input type="hidden" name="sizesJson" value={sizesJson} />
       <input type="hidden" name="colorsJson" value={colorsJson} />
       <input type="hidden" name="variantsJson" value={variantsJson} />

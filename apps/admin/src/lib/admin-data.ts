@@ -118,6 +118,7 @@ export interface DashboardData {
   categories: number
   collections: number
   productViews: number
+  totalVisits: number
   cartAdds: number
   favoriteAdds: number
   whatsappClicks: number
@@ -218,6 +219,7 @@ function productLowStock(product: { variants?: unknown }): boolean {
 }
 
 interface AnalyticsSummary {
+  totalVisits: number
   productViews: number
   cartAdds: number
   favoriteAdds: number
@@ -248,6 +250,24 @@ function pathFromMetadata(metadata: unknown): string | null {
   return path ?? url ?? null
 }
 
+function eventNameFromData(data: Record<string, unknown>, collection: string): string {
+  if (typeof data.name === "string") {
+    return data.name
+  }
+
+  return collection === "page_views" ? "page_view" : ""
+}
+
+function metadataFromData(data: Record<string, unknown>): Record<string, unknown> {
+  const metadata = data.metadata
+
+  if (metadata && typeof metadata === "object" && !Array.isArray(metadata)) {
+    return metadata as Record<string, unknown>
+  }
+
+  return data
+}
+
 function topCounts(map: Map<string, number>, limit: number) {
   return Array.from(map, ([key, count]) => ({ key, count }))
     .sort((left, right) => right.count - left.count || left.key.localeCompare(right.key))
@@ -257,6 +277,7 @@ function topCounts(map: Map<string, number>, limit: number) {
 async function getAnalyticsSummary(): Promise<AnalyticsSummary> {
   if (!getFirebaseAdminStatus().available) {
     return {
+      totalVisits: 0,
       productViews: 0,
       cartAdds: 0,
       favoriteAdds: 0,
@@ -266,34 +287,49 @@ async function getAnalyticsSummary(): Promise<AnalyticsSummary> {
     }
   }
 
-  const snapshot = await getFirebaseAdminFirestore().collection("analyticsEvents").limit(500).get()
+  const db = getFirebaseAdminFirestore()
+  const analyticsCollections = ["analytics", "analyticsEvents", "page_views"]
+  const snapshots = await Promise.all(
+    analyticsCollections.map(async (collection) => ({
+      collection,
+      snapshot: await db.collection(collection).limit(500).get(),
+    })),
+  )
   const sources = new Map<string, number>()
   const pages = new Map<string, number>()
+  let totalVisits = 0
   let productViews = 0
   let cartAdds = 0
   let favoriteAdds = 0
   let whatsappClicks = 0
 
-  snapshot.docs.forEach((doc) => {
-    const data = doc.data()
-    const name = typeof data.name === "string" ? data.name : ""
-    const metadata = data.metadata
-    const source = sourceFromMetadata(metadata)
-    const path = pathFromMetadata(metadata)
+  snapshots.forEach(({ collection, snapshot }) => {
+    snapshot.docs.forEach((doc) => {
+      const data = doc.data()
+      const metadata = metadataFromData(data)
+      const name = eventNameFromData(data, collection)
+      const source = sourceFromMetadata(metadata)
+      const path = pathFromMetadata(metadata)
 
-    sources.set(source, (sources.get(source) ?? 0) + 1)
+      sources.set(source, (sources.get(source) ?? 0) + 1)
 
-    if ((name === "page_view" || name === "product_view") && path) {
-      pages.set(path, (pages.get(path) ?? 0) + 1)
-    }
+      if (name === "page_view" || name === "product_view") {
+        totalVisits += 1
+      }
 
-    if (name === "product_view") productViews += 1
-    if (name === "cart_add") cartAdds += 1
-    if (name === "favorite_add") favoriteAdds += 1
-    if (name === "whatsapp_click") whatsappClicks += 1
+      if ((name === "page_view" || name === "product_view") && path) {
+        pages.set(path, (pages.get(path) ?? 0) + 1)
+      }
+
+      if (name === "product_view") productViews += 1
+      if (name === "cart_add") cartAdds += 1
+      if (name === "favorite_add") favoriteAdds += 1
+      if (name === "whatsapp_click") whatsappClicks += 1
+    })
   })
 
   return {
+    totalVisits,
     productViews,
     cartAdds,
     favoriteAdds,
@@ -648,6 +684,7 @@ export async function getDashboardData(): Promise<DashboardData> {
     lowStock,
     categories: categories.length,
     collections: collections.length,
+    totalVisits: analytics.totalVisits,
     productViews: analytics.productViews,
     cartAdds: analytics.cartAdds,
     favoriteAdds: analytics.favoriteAdds,

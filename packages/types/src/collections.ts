@@ -11,7 +11,9 @@ export const firestoreCollections = {
   inventoryMovements: "inventoryMovements",
   adminUsers: "adminUsers",
   auditLogs: "auditLogs",
+  analytics: "analytics",
   analyticsEvents: "analyticsEvents",
+  pageViews: "page_views",
 } as const
 
 export type FirestoreCollectionName =

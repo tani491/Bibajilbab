@@ -50,7 +50,9 @@ describe("admin form schemas", () => {
   })
 
   it("rejects product publication without a real image URL", () => {
-    expect(() => productFromFormData(productFormData({ imagesJson: "[]" }))).toThrow()
+    expect(() => productFromFormData(productFormData({ imagesJson: "[]" }))).toThrow(
+      "Ajoutez au moins une image valide",
+    )
   })
 
   it("validates site settings and WhatsApp request statuses", () => {

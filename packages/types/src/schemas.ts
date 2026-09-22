@@ -39,13 +39,16 @@ export const productImageUrlSchema = z
       try {
         const url = new URL(value)
 
-        return ["http:", "https:", "data:", "blob:"].includes(url.protocol)
+        return (
+          ["http:", "https:", "blob:"].includes(url.protocol) ||
+          (url.protocol === "data:" && value.startsWith("data:image/"))
+        )
       } catch {
         return false
       }
     },
     {
-      message: "L'URL de l'image doit etre une URL http(s), data: ou blob: valide.",
+      message: "URL d'image invalide. Utilisez une URL HTTPS, Cloudinary/Firebase, data:image ou blob.",
     },
   )
 

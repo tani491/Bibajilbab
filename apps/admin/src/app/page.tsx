@@ -95,6 +95,10 @@ export default async function AdminDashboardPage() {
             <h2 className="text-lg font-semibold text-brand-ink">Analytique & Provenance</h2>
             <dl className="mt-5 space-y-4 text-sm">
               <div className="flex justify-between gap-4">
+                <dt className="text-brand-muted">Visites totales</dt>
+                <dd className="font-semibold text-brand-ink">{dashboard.totalVisits}</dd>
+              </div>
+              <div className="flex justify-between gap-4">
                 <dt className="text-brand-muted">Produits consultés</dt>
                 <dd className="font-semibold text-brand-ink">{dashboard.productViews}</dd>
               </div>

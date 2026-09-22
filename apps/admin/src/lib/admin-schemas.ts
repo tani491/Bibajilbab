@@ -151,6 +151,28 @@ function parseJsonArray<TSchema extends z.ZodTypeAny>(
   return z.array(schema).parse(parsed)
 }
 
+function parseProductImages(value: string) {
+  try {
+    const images = parseJsonArray(value, productImageSchema)
+
+    if (images.length === 0) {
+      throw new Error(
+        "Ajoutez au moins une image valide au produit avant d'enregistrer.",
+      )
+    }
+
+    return images
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      throw new Error(
+        "Ajoutez au moins une image valide au produit : URL HTTPS, Cloudinary/Firebase, data:image ou blob.",
+      )
+    }
+
+    throw error
+  }
+}
+
 function skuFromSlug(slug: string): string {
   return `BJ-${slug.toUpperCase().replace(/[^A-Z0-9]+/g, "-").slice(0, 56)}`.replace(
     /-+$/u,
@@ -217,7 +239,7 @@ export function productFromFormData(formData: FormData) {
     categoryId: parsed.categoryId ?? "non-classe",
     collectionIds: parsed.collectionIds,
     tags: parsed.tags,
-    images: parseJsonArray(parsed.imagesJson, productImageSchema),
+    images: parseProductImages(parsed.imagesJson),
     sizes: parseJsonArray(parsed.sizesJson, productSizeSchema),
     colors: parseJsonArray(parsed.colorsJson, productColorSchema),
     variants,

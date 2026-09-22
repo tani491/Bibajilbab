@@ -112,4 +112,45 @@ describe("productSchema", () => {
 
     expect(product.success).toBe(false)
   })
+
+  it("accepts preview image URLs used by admin uploads", () => {
+    const product = productSchema.parse({
+      name: "Image locale",
+      slug: "image-locale",
+      sku: "BJ-IMG",
+      shortDescription: "Produit avec aperçu local.",
+      longDescription: "Validation des formats data:image et blob.",
+      price: 12000,
+      currency: "XOF",
+      categoryId: "djilbabs",
+      collectionIds: [],
+      tags: [],
+      images: [
+        {
+          url: "data:image/png;base64,iVBORw0KGgo=",
+          alt: "Aperçu local",
+          position: 0,
+        },
+        {
+          url: "blob:http://localhost:3001/preview-image",
+          alt: "Aperçu blob",
+          position: 1,
+        },
+      ],
+      sizes: [],
+      colors: [],
+      variants: [],
+      featured: false,
+      status: "draft",
+      seo: {
+        metaTitle: "Image locale",
+        metaDescription: "Validation des aperçus locaux.",
+        noIndex: true,
+      },
+      createdAt: "2026-08-16T00:00:00.000Z",
+      updatedAt: "2026-08-16T00:00:00.000Z",
+    })
+
+    expect(product.images).toHaveLength(2)
+  })
 })
