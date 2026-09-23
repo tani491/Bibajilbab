@@ -3,11 +3,21 @@ import "server-only"
 import { unstable_cache } from "next/cache"
 
 import { getOptimizedCloudinaryImageSrc } from "@bibajilbab/config"
-import { productImageSchema, productSchema, testimonialSchema } from "@bibajilbab/types"
+import {
+  categorySchema,
+  productImageSchema,
+  productSchema,
+  testimonialSchema,
+} from "@bibajilbab/types"
 import type { ProductImage } from "@bibajilbab/types"
 
-import { getFirebaseAdminFirestore } from "./firebase/admin"
-import { type StoreProduct, type StoreProductImage } from "./catalog"
+import { getFirebaseAdminFirestore, getFirebaseAdminStatus } from "./firebase/admin"
+import {
+  categories as fallbackCategories,
+  type StoreCategory,
+  type StoreProduct,
+  type StoreProductImage,
+} from "./catalog"
 
 export interface StorefrontHero {
   eyebrow: string
@@ -37,41 +47,113 @@ export interface StorefrontTestimonial {
   orderIndex: number
 }
 
-export async function getStorefrontCategoryImages(
+function categoryFallbackImage(
+  category: Pick<StoreCategory, "id" | "slug" | "imageSrc">,
+  products: StoreProduct[],
+): string {
+  return (
+    category.imageSrc ||
+    products.find(
+      (product) => product.categorySlug === category.id || product.categorySlug === category.slug,
+    )?.images[0]?.src ||
+    ""
+  )
+}
+
+function fallbackStorefrontCategories(products: StoreProduct[]): StoreCategory[] {
+  return fallbackCategories.map((category) => ({
+    ...category,
+    imageSrc: categoryFallbackImage(category, products),
+  }))
+}
+
+function toStoreCategory(
+  documentId: string,
+  data: Record<string, unknown>,
+  products: StoreProduct[],
+): StoreCategory | null {
+  const name = typeof data.name === "string" && data.name.trim() ? data.name.trim() : documentId
+  const slug = typeof data.slug === "string" && data.slug.trim() ? data.slug.trim() : documentId
+  const status =
+    data.status === "draft" || data.status === "published" || data.status === "archived"
+      ? data.status
+      : "published"
+  const normalizedImage = normalizeImageCandidate(data.image, name, 0)
+  const now = new Date(0).toISOString()
+  const candidate = {
+    ...data,
+    id: documentId,
+    name,
+    slug,
+    description: typeof data.description === "string" ? data.description : "",
+    ...(normalizedImage ? { image: normalizedImage } : {}),
+    position: typeof data.position === "number" ? data.position : 0,
+    status,
+    seo: data.seo,
+    createdAt: data.createdAt ?? now,
+    updatedAt: data.updatedAt ?? data.createdAt ?? now,
+  }
+  const parsed = categorySchema.safeParse(candidate)
+
+  if (!parsed.success || parsed.data.status !== "published") {
+    return null
+  }
+
+  const imageSrc = parsed.data.image?.url
+    ? (getOptimizedCloudinaryImageSrc(parsed.data.image.url) ?? parsed.data.image.url)
+    : ""
+
+  return {
+    id: documentId,
+    slug: parsed.data.slug,
+    name: parsed.data.name,
+    description: parsed.data.description ?? "",
+    imageSrc:
+      imageSrc ||
+      categoryFallbackImage({ id: documentId, slug: parsed.data.slug, imageSrc }, products),
+    imageAlt: parsed.data.image?.alt ?? `${parsed.data.name} - BibaJilbab`,
+    position: parsed.data.position,
+  }
+}
+
+function sortStoreCategories(categories: StoreCategory[]): StoreCategory[] {
+  return [...categories].sort((left, right) => {
+    const positionDiff = (left.position ?? 0) - (right.position ?? 0)
+
+    return positionDiff || left.name.localeCompare(right.name, "fr")
+  })
+}
+
+export async function getStorefrontCategories(
   products: StoreProduct[] = [],
-): Promise<Record<string, string>> {
+): Promise<StoreCategory[]> {
+  if (!getFirebaseAdminStatus().available) {
+    return fallbackStorefrontCategories(products)
+  }
+
   try {
     const snapshot = await getFirebaseAdminFirestore().collection("categories").get()
-    const images: Record<string, string> = {}
+    const categories = snapshot.docs
+      .map((document) => toStoreCategory(document.id, document.data(), products))
+      .filter((category): category is StoreCategory => category !== null)
 
-    snapshot.docs.forEach((document) => {
-      const data = document.data()
-      const image = data.image
-      const url =
-        typeof image === "string"
-          ? image
-          : image && typeof image === "object" && typeof image.url === "string"
-            ? image.url
-            : undefined
+    return sortStoreCategories(categories)
+  } catch (error) {
+    if (process.env.NODE_ENV !== "production") {
+      console.error("[Storefront Categories Firestore Error]", error)
+    }
 
-      if (url) {
-        const optimizedUrl = getOptimizedCloudinaryImageSrc(url) ?? url
-        images[document.id] = optimizedUrl
-        if (typeof data.slug === "string") {
-          images[data.slug] = optimizedUrl
-        }
-      } else if (typeof data.slug === "string") {
-        const fallbackProduct = products.find((product) => product.categorySlug === document.id)
-        if (fallbackProduct?.images[0]?.src) {
-          images[data.slug] = fallbackProduct.images[0].src
-        }
-      }
-    })
-
-    return images
-  } catch {
-    return {}
+    return fallbackStorefrontCategories(products)
   }
+}
+
+export async function getStorefrontCategoryBySlug(
+  slug: string,
+  products: StoreProduct[] = [],
+): Promise<StoreCategory | undefined> {
+  const categories = await getStorefrontCategories(products)
+
+  return categories.find((category) => category.slug === slug || category.id === slug)
 }
 
 function mapImage(image: ProductImage): StoreProductImage {

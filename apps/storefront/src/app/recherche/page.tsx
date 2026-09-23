@@ -4,8 +4,8 @@ import { Container, SectionHeading } from "@bibajilbab/ui/server"
 
 import { CatalogFiltersForm } from "@/components/commerce/catalog-filters-form"
 import { ProductGrid } from "@/components/commerce/product-grid"
-import { createPageMetadata } from "@/lib/catalog"
-import { getStorefrontProducts } from "@/lib/storefront-data"
+import { createPageMetadata, getCategoryLabelMap } from "@/lib/catalog"
+import { getStorefrontCategories, getStorefrontProducts } from "@/lib/storefront-data"
 import {
   getFilteredProducts,
   paginateProducts,
@@ -19,7 +19,7 @@ export const metadata = createPageMetadata({
   path: "/recherche",
 })
 
-export const revalidate = 60
+export const revalidate = 0
 
 export default async function SearchPage({
   searchParams,
@@ -28,7 +28,9 @@ export default async function SearchPage({
 }) {
   const filters = parseCatalogFilters(await searchParams)
   const products = await getStorefrontProducts({ status: "published" })
-  const filteredProducts = getFilteredProducts(products, filters)
+  const categories = await getStorefrontCategories(products)
+  const categoryLabels = getCategoryLabelMap(categories)
+  const filteredProducts = getFilteredProducts(products, filters, categoryLabels)
   const paginated = paginateProducts(filteredProducts, filters.page, 12)
   const sizeOptions = Array.from(
     new Map(
@@ -58,6 +60,7 @@ export default async function SearchPage({
             filters={filters}
             pathname="/recherche"
             resetHref="/recherche"
+            categories={categories}
             sizeOptions={sizeOptions}
             colorOptions={colorOptions}
           />
@@ -69,6 +72,7 @@ export default async function SearchPage({
         <div className="mt-6">
           <ProductGrid
             products={paginated.items}
+            categoryLabels={categoryLabels}
             emptyTitle="Aucun résultat"
             emptyDescription="Essayez une recherche plus courte ou revenez au catalogue complet."
           />

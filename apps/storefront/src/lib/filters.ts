@@ -70,7 +70,11 @@ export function parseCatalogFilters(searchParams: SearchParamRecord): CatalogFil
   }
 }
 
-export function filterProducts(products: StoreProduct[], filters: CatalogFilters): StoreProduct[] {
+export function filterProducts(
+  products: StoreProduct[],
+  filters: CatalogFilters,
+  categoryLabels: Record<string, string> = {},
+): StoreProduct[] {
   const normalizedQuery = filters.query.toLowerCase()
 
   return products.filter((product) => {
@@ -80,7 +84,7 @@ export function filterProducts(products: StoreProduct[], filters: CatalogFilters
         product.name,
         product.sku,
         product.shortDescription,
-        getCategoryName(product.categorySlug),
+        categoryLabels[product.categorySlug] ?? getCategoryName(product.categorySlug),
         ...product.collectionSlugs.map(getCollectionName),
         ...product.tags,
       ]
@@ -133,8 +137,9 @@ export function sortProducts(products: StoreProduct[], sort: SortOption): StoreP
 export function getFilteredProducts(
   products: StoreProduct[],
   filters: CatalogFilters,
+  categoryLabels: Record<string, string> = {},
 ): StoreProduct[] {
-  return sortProducts(filterProducts(products, filters), filters.sort)
+  return sortProducts(filterProducts(products, filters, categoryLabels), filters.sort)
 }
 
 export function paginateProducts<T>(

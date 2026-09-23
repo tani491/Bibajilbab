@@ -1,7 +1,9 @@
 "use client"
 
 import Image from "next/image"
-import { useState } from "react"
+import { useEffect, useMemo, useState } from "react"
+
+const DEFAULT_FALLBACK_SRC = "/demo/image-placeholder.svg"
 
 export interface ResilientImageProps {
   src: string
@@ -9,6 +11,7 @@ export interface ResilientImageProps {
   sizes: string
   className?: string
   fallbackSrc?: string
+  priority?: boolean
 }
 
 export function ResilientImage({
@@ -16,10 +19,17 @@ export function ResilientImage({
   alt,
   sizes,
   className,
-  fallbackSrc,
+  fallbackSrc = DEFAULT_FALLBACK_SRC,
+  priority = false,
 }: ResilientImageProps) {
-  const [currentSrc, setCurrentSrc] = useState(src)
+  const initialSrc = useMemo(() => src.trim() || fallbackSrc, [fallbackSrc, src])
+  const [currentSrc, setCurrentSrc] = useState(initialSrc)
   const [failed, setFailed] = useState(false)
+
+  useEffect(() => {
+    setCurrentSrc(initialSrc)
+    setFailed(false)
+  }, [initialSrc])
 
   if (failed) {
     return <div className="h-full w-full bg-brand-blush" aria-label="Image indisponible" />
@@ -32,6 +42,7 @@ export function ResilientImage({
       fill
       sizes={sizes}
       className={className}
+      priority={priority}
       onError={() => {
         if (fallbackSrc && currentSrc !== fallbackSrc) {
           setCurrentSrc(fallbackSrc)

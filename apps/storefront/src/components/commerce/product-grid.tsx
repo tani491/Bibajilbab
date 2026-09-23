@@ -6,10 +6,12 @@ import { ProductCardClient } from "./product-card-client"
 
 export function ProductGrid({
   products,
+  categoryLabels = {},
   emptyTitle = "Aucun produit trouvé",
   emptyDescription = "Essayez de modifier les filtres ou de revenir au catalogue complet.",
 }: {
   products: StoreProduct[]
+  categoryLabels?: Record<string, string>
   emptyTitle?: string
   emptyDescription?: string
 }) {
@@ -20,7 +22,11 @@ export function ProductGrid({
   return (
     <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
       {products.map((product) => (
-        <ProductCardClient key={product.id} product={product} />
+        <ProductCardClient
+          key={product.id}
+          product={product}
+          categoryName={categoryLabels[product.categorySlug]}
+        />
       ))}
     </div>
   )

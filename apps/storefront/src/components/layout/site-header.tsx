@@ -10,21 +10,23 @@ import type { FormEvent } from "react"
 import { brandConfig } from "@bibajilbab/config"
 import { Drawer, IconButton, Input, buttonStyles, cn } from "@bibajilbab/ui"
 
-import { categories } from "@/lib/catalog"
+import type { StoreCategory } from "@/lib/catalog"
 import { buildGeneralWhatsAppUrl } from "@/lib/whatsapp"
 
 import { useStorefrontState } from "../commerce/store-provider"
 
-const navItems = [
+const baseNavItems = [
   { href: "/", label: "Accueil" },
   { href: "/collections/nouveautes", label: "Nouveautés" },
   { href: "/catalogue", label: "Catalogue" },
-  { href: "/categories/djilbabs", label: "Djilbabs" },
-  { href: "/categories/khimars", label: "Khimars" },
-  { href: "/categories/tuniques", label: "Tuniques" },
-  { href: "/categories/priere", label: "Tenues de prière" },
+]
+
+const collectionNavItems = [
   { href: "/collections/tabaski", label: "Tabaski" },
   { href: "/collections/korite", label: "Korité" },
+]
+
+const supportNavItems = [
   { href: "/a-propos", label: "À propos" },
   { href: "/contact", label: "Contact" },
 ]
@@ -43,13 +45,25 @@ function Counter({ value }: { value: number }) {
 
 export function SiteHeader({
   announcement,
+  categories,
 }: {
   announcement: { text: string; href: string; logoUrl?: string }
+  categories: StoreCategory[]
 }) {
   const router = useRouter()
   const [menuOpen, setMenuOpen] = useState(false)
   const [query, setQuery] = useState("")
   const { favoriteCount, cartCount } = useStorefrontState()
+  const categoryNavItems = categories.map((category) => ({
+    href: `/categories/${category.slug}`,
+    label: category.name,
+  }))
+  const navItems = [...baseNavItems, ...categoryNavItems, ...collectionNavItems, ...supportNavItems]
+  const desktopNavItems = [
+    ...baseNavItems,
+    ...categoryNavItems.slice(0, 4),
+    ...collectionNavItems,
+  ].slice(0, 8)
 
   function handleSearch(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -88,7 +102,7 @@ export function SiteHeader({
         </Link>
 
         <nav className="hidden flex-1 items-center justify-center gap-5 text-sm font-medium text-brand-muted lg:flex">
-          {navItems.slice(0, 8).map((item) => (
+          {desktopNavItems.map((item) => (
             <Link key={item.href} className="transition hover:text-brand-plum" href={item.href}>
               {item.label}
             </Link>
@@ -165,21 +179,23 @@ export function SiteHeader({
             </Link>
           ))}
         </nav>
-        <div className="mt-6 border-t border-brand-border pt-6">
-          <p className="mb-3 text-xs font-semibold uppercase text-brand-muted">Catégories</p>
-          <div className="grid gap-2">
-            {categories.map((category) => (
-              <Link
-                key={category.slug}
-                href={`/categories/${category.slug}`}
-                className="rounded-card border border-brand-border px-3 py-3 text-sm text-brand-muted transition hover:border-brand-plum hover:text-brand-plum focus-visible:outline-none focus-visible:shadow-focus"
-                onClick={() => setMenuOpen(false)}
-              >
-                {category.name}
-              </Link>
-            ))}
+        {categories.length > 0 ? (
+          <div className="mt-6 border-t border-brand-border pt-6">
+            <p className="mb-3 text-xs font-semibold uppercase text-brand-muted">Catégories</p>
+            <div className="grid gap-2">
+              {categories.map((category) => (
+                <Link
+                  key={category.id}
+                  href={`/categories/${category.slug}`}
+                  className="rounded-card border border-brand-border px-3 py-3 text-sm text-brand-muted transition hover:border-brand-plum hover:text-brand-plum focus-visible:outline-none focus-visible:shadow-focus"
+                  onClick={() => setMenuOpen(false)}
+                >
+                  {category.name}
+                </Link>
+              ))}
+            </div>
           </div>
-        </div>
+        ) : null}
         <a
           href={buildGeneralWhatsAppUrl()}
           target="_blank"

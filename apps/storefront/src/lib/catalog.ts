@@ -7,11 +7,13 @@ export type SortOption = "newest" | "popular" | "price-asc" | "price-desc"
 export type AvailabilityFilter = "all" | "available"
 
 export interface StoreCategory {
+  id: string
   slug: string
   name: string
   description: string
   imageSrc: string
   imageAlt: string
+  position?: number
 }
 
 export interface StoreCollection {
@@ -89,6 +91,7 @@ export const announcement = {
 
 export const categories: StoreCategory[] = [
   {
+    id: "djilbabs",
     slug: "djilbabs",
     name: "Djilbabs",
     description: "Silhouettes couvrantes, élégantes et pensées pour le quotidien.",
@@ -96,6 +99,7 @@ export const categories: StoreCategory[] = [
     imageAlt: "Illustration d'un djilbab rose poudré",
   },
   {
+    id: "khimars",
     slug: "khimars",
     name: "Khimars",
     description: "Voiles amples et fluides pour une pudeur confortable.",
@@ -103,6 +107,7 @@ export const categories: StoreCategory[] = [
     imageAlt: "Illustration d'un khimar prune",
   },
   {
+    id: "tuniques",
     slug: "tuniques",
     name: "Tuniques",
     description: "Pièces longues et faciles à associer avec vos essentiels.",
@@ -110,6 +115,7 @@ export const categories: StoreCategory[] = [
     imageAlt: "Illustration d'une tunique claire",
   },
   {
+    id: "priere",
     slug: "priere",
     name: "Prière",
     description: "Tenues sobres et pratiques pour les moments de recueillement.",
@@ -452,7 +458,7 @@ export function getProductBySlug(slug: string): StoreProduct | undefined {
 }
 
 export function getCategoryBySlug(slug: string): StoreCategory | undefined {
-  return categories.find((category) => category.slug === slug)
+  return categories.find((category) => category.slug === slug || category.id === slug)
 }
 
 export function getCollectionBySlug(slug: string): StoreCollection | undefined {
@@ -482,6 +488,15 @@ export function getRelatedProducts(product: StoreProduct, limit = 4): StoreProdu
 
 export function getCategoryName(slug: string): string {
   return getCategoryBySlug(slug)?.name ?? slug
+}
+
+export function getCategoryLabelMap(storeCategories: StoreCategory[]): Record<string, string> {
+  return storeCategories.reduce<Record<string, string>>((labels, category) => {
+    labels[category.id] = category.name
+    labels[category.slug] = category.name
+
+    return labels
+  }, {})
 }
 
 export function getCollectionName(slug: string): string {

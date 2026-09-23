@@ -1,5 +1,4 @@
 import { BadgeCheck, Instagram, Music2, ShieldCheck, ShoppingBag, Star, Truck } from "lucide-react"
-import Image from "next/image"
 import Link from "next/link"
 
 import { brandConfig, parsePublicEnv } from "@bibajilbab/config"
@@ -14,9 +13,10 @@ import {
 
 import { ProductGrid } from "@/components/commerce/product-grid"
 import { WhatsAppIcon } from "@/components/layout/whatsapp-icon"
-import { categories } from "@/lib/catalog"
+import { ResilientImage } from "@/components/resilient-image"
+import { getCategoryLabelMap } from "@/lib/catalog"
 import {
-  getStorefrontCategoryImages,
+  getStorefrontCategories,
   getStorefrontHero,
   getStorefrontProducts,
   getStorefrontTestimonials,
@@ -65,7 +65,7 @@ function RatingStars({ rating }: { rating: number }) {
   )
 }
 
-export const revalidate = 60
+export const revalidate = 0
 
 export default async function StorefrontHomePage() {
   const publicEnv = parsePublicEnv(process.env)
@@ -74,7 +74,8 @@ export default async function StorefrontHomePage() {
     getStorefrontHero(),
     getStorefrontTestimonials(),
   ])
-  const categoryImages = await getStorefrontCategoryImages(products)
+  const categories = await getStorefrontCategories(products)
+  const categoryLabels = getCategoryLabelMap(categories)
   const fallbackImage = products[0]?.images[0]
   const newestProducts = [...products]
     .sort((left, right) => right.createdAt.localeCompare(left.createdAt))
@@ -104,10 +105,9 @@ export default async function StorefrontHomePage() {
               src={heroVideoUrl}
             />
           ) : hero?.imageUrl || fallbackImage ? (
-            <Image
+            <ResilientImage
               src={hero?.imageUrl || fallbackImage?.src || ""}
               alt={hero?.imageAlt || fallbackImage?.alt || "Collection BibaJilbab"}
-              fill
               priority
               sizes="100vw"
               className="object-cover object-[62%_center]"
@@ -175,25 +175,20 @@ export default async function StorefrontHomePage() {
               >
                 {(() => {
                   const fallbackProduct = products.find(
-                    (product) => product.categorySlug === category.slug,
+                    (product) =>
+                      product.categorySlug === category.id ||
+                      product.categorySlug === category.slug,
                   )
-                  const imageSrc =
-                    categoryImages[category.slug] ||
-                    categoryImages[fallbackProduct?.categorySlug ?? ""] ||
-                    fallbackProduct?.images[0]?.src ||
-                    category.imageSrc
+                  const imageSrc = category.imageSrc || fallbackProduct?.images[0]?.src || ""
 
                   return (
-                    <div className="relative aspect-[4/5] bg-brand-blush">
-                      {imageSrc ? (
-                        <Image
-                          src={imageSrc}
-                          alt={category.imageAlt}
-                          fill
-                          sizes="(max-width: 1024px) 50vw, 25vw"
-                          className="object-cover transition duration-300 group-hover:scale-105"
-                        />
-                      ) : null}
+                    <div className="relative aspect-[4/5] overflow-hidden bg-brand-blush">
+                      <ResilientImage
+                        src={imageSrc}
+                        alt={category.imageAlt}
+                        sizes="(max-width: 1024px) 50vw, 25vw"
+                        className="object-cover transition duration-300 group-hover:scale-105"
+                      />
                     </div>
                   )
                 })()}
@@ -223,7 +218,7 @@ export default async function StorefrontHomePage() {
             </Link>
           </div>
           <div className="mt-8">
-            <ProductGrid products={featuredProducts} />
+            <ProductGrid products={featuredProducts} categoryLabels={categoryLabels} />
           </div>
         </Container>
       </section>
@@ -236,7 +231,7 @@ export default async function StorefrontHomePage() {
             description="La section est prête pour des produits populaires à piloter avec de vraies données. Les éléments affichés ici sont des aperçus locaux."
           />
           <div className="mt-8">
-            <ProductGrid products={previewPopularProducts} />
+            <ProductGrid products={previewPopularProducts} categoryLabels={categoryLabels} />
           </div>
         </Container>
       </section>
@@ -292,9 +287,7 @@ export default async function StorefrontHomePage() {
                         </Badge>
                       ) : null}
                     </div>
-                    <p className="mt-4 text-sm leading-6 text-brand-muted">
-                      {testimonial.content}
-                    </p>
+                    <p className="mt-4 text-sm leading-6 text-brand-muted">{testimonial.content}</p>
                     <div className="mt-4">
                       <p className="text-sm font-semibold text-brand-ink">
                         {testimonial.authorName}

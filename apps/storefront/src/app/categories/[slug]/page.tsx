@@ -6,24 +6,24 @@ import { Container, SectionHeading } from "@bibajilbab/ui/server"
 import { Breadcrumbs } from "@/components/commerce/breadcrumbs"
 import { CatalogFiltersForm } from "@/components/commerce/catalog-filters-form"
 import { ProductGrid } from "@/components/commerce/product-grid"
-import { categories, createPageMetadata, getCategoryBySlug } from "@/lib/catalog"
+import { createPageMetadata, getCategoryLabelMap } from "@/lib/catalog"
 import { getFilteredProducts, parseCatalogFilters, type SearchParamRecord } from "@/lib/filters"
-import { getStorefrontProducts } from "@/lib/storefront-data"
+import {
+  getStorefrontCategories,
+  getStorefrontCategoryBySlug,
+  getStorefrontProducts,
+} from "@/lib/storefront-data"
 
 type CategoryPageProps = {
   params: Promise<{ slug: string }>
   searchParams: Promise<SearchParamRecord>
 }
 
-export function generateStaticParams() {
-  return categories.map((category) => ({ slug: category.slug }))
-}
-
-export const revalidate = 60
+export const revalidate = 0
 
 export async function generateMetadata({ params }: CategoryPageProps): Promise<Metadata> {
   const { slug } = await params
-  const category = getCategoryBySlug(slug)
+  const category = await getStorefrontCategoryBySlug(slug)
 
   if (!category) {
     return {}
@@ -38,15 +38,19 @@ export async function generateMetadata({ params }: CategoryPageProps): Promise<M
 
 export default async function CategoryPage({ params, searchParams }: CategoryPageProps) {
   const { slug } = await params
-  const category = getCategoryBySlug(slug)
+  const [products, categories] = await Promise.all([
+    getStorefrontProducts({ status: "published" }),
+    getStorefrontCategories(),
+  ])
+  const category = categories.find((item) => item.slug === slug || item.id === slug)
 
   if (!category) {
     notFound()
   }
 
-  const filters = { ...parseCatalogFilters(await searchParams), category: category.slug }
-  const products = await getStorefrontProducts({ status: "published" })
-  const filteredProducts = getFilteredProducts(products, filters)
+  const categoryLabels = getCategoryLabelMap(categories)
+  const filters = { ...parseCatalogFilters(await searchParams), category: category.id }
+  const filteredProducts = getFilteredProducts(products, filters, categoryLabels)
   const sizeOptions = Array.from(
     new Map(
       products
@@ -78,7 +82,8 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
             filters={filters}
             pathname={`/categories/${category.slug}`}
             resetHref={`/categories/${category.slug}`}
-            lockCategory={category.slug}
+            categories={categories}
+            lockCategory={category.id}
             sizeOptions={sizeOptions}
             colorOptions={colorOptions}
           />
@@ -87,7 +92,7 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
           {filteredProducts.length} produit(s)
         </p>
         <div className="mt-6">
-          <ProductGrid products={filteredProducts} />
+          <ProductGrid products={filteredProducts} categoryLabels={categoryLabels} />
         </div>
       </Container>
     </main>

@@ -15,8 +15,12 @@ import {
   BreadcrumbStructuredData,
   ProductStructuredData,
 } from "@/components/commerce/structured-data"
-import { getCategoryName } from "@/lib/catalog"
-import { getStorefrontProductBySlug, getStorefrontProducts } from "@/lib/storefront-data"
+import { getCategoryLabelMap, getCategoryName } from "@/lib/catalog"
+import {
+  getStorefrontCategories,
+  getStorefrontProductBySlug,
+  getStorefrontProducts,
+} from "@/lib/storefront-data"
 
 type ProductPageProps = {
   params: Promise<{ slug: string }>
@@ -83,6 +87,8 @@ export default async function ProductPage({ params }: ProductPageProps) {
 
   const publicEnv = parsePublicEnv(process.env)
   const allProducts = await getStorefrontProducts({ status: "published" })
+  const categories = await getStorefrontCategories(allProducts)
+  const categoryLabels = getCategoryLabelMap(categories)
   const relatedProducts = allProducts
     .filter(
       (item) =>
@@ -153,7 +159,9 @@ export default async function ProductPage({ params }: ProductPageProps) {
         <section className="mt-14 grid gap-8 lg:grid-cols-[0.75fr_1fr]">
           <div>
             <SectionHeading
-              eyebrow={getCategoryName(product.categorySlug)}
+              eyebrow={
+                categoryLabels[product.categorySlug] ?? getCategoryName(product.categorySlug)
+              }
               title="Détails du produit"
               description={product.shortDescription}
             />
@@ -189,7 +197,11 @@ export default async function ProductPage({ params }: ProductPageProps) {
             </Link>
           </div>
           <div className="mt-8">
-            <ProductGrid products={relatedProducts} emptyTitle="Pas encore de suggestion" />
+            <ProductGrid
+              products={relatedProducts}
+              categoryLabels={categoryLabels}
+              emptyTitle="Pas encore de suggestion"
+            />
           </div>
         </section>
 
@@ -200,7 +212,11 @@ export default async function ProductPage({ params }: ProductPageProps) {
             description="Cette liste est enregistrée seulement dans votre navigateur."
           />
           <div className="mt-8">
-            <RecentlyViewedProducts products={allProducts} currentSlug={product.slug} />
+            <RecentlyViewedProducts
+              products={allProducts}
+              currentSlug={product.slug}
+              categoryLabels={categoryLabels}
+            />
           </div>
         </section>
       </Container>

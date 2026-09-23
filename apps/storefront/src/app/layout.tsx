@@ -11,7 +11,7 @@ import { StorefrontAnalytics } from "@/components/commerce/storefront-analytics"
 import { FloatingWhatsApp } from "@/components/layout/floating-whatsapp"
 import { SiteFooter } from "@/components/layout/site-footer"
 import { SiteHeader } from "@/components/layout/site-header"
-import { getStorefrontAnnouncement } from "@/lib/storefront-data"
+import { getStorefrontAnnouncement, getStorefrontCategories } from "@/lib/storefront-data"
 import { announcement as defaultAnnouncement } from "@/lib/catalog"
 
 import "./globals.css"
@@ -91,18 +91,13 @@ export const viewport: Viewport = {
   themeColor: "#FFF5F8",
 }
 
-/**
- * Use ISR (Incremental Static Regeneration) with 60-second revalidation
- * This allows the page to be statically generated and cached for performance,
- * while still revalidating periodically for announcement/settings updates.
- *
- * This is much more performant than force-dynamic which re-renders on every request.
- * Use revalidatePath() in admin actions to invalidate on demand when settings change.
- */
-export const revalidate = 60
+export const revalidate = 0
 
 export default async function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
-  const announcement = (await getStorefrontAnnouncement()) ?? defaultAnnouncement
+  const [announcement, categories] = await Promise.all([
+    getStorefrontAnnouncement(),
+    getStorefrontCategories(),
+  ])
 
   return (
     <html lang="fr">
@@ -111,7 +106,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
         <WebsiteStructuredData siteUrl={publicEnv.urls.site} />
         <StoreProvider>
           <StorefrontAnalytics />
-          <SiteHeader announcement={announcement} />
+          <SiteHeader announcement={announcement ?? defaultAnnouncement} categories={categories} />
           {children}
           <SiteFooter />
           <FloatingWhatsApp />

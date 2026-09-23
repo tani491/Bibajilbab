@@ -11,7 +11,13 @@ import { formatFcfa } from "@/lib/money"
 
 import { useStorefrontState } from "./store-provider"
 
-export function ProductCardClient({ product }: { product: StoreProduct }) {
+export function ProductCardClient({
+  product,
+  categoryName,
+}: {
+  product: StoreProduct
+  categoryName?: string | undefined
+}) {
   const { isFavorite, toggleFavorite } = useStorefrontState()
   const favorite = isFavorite(product.slug)
   const image = product.images[0]
@@ -43,7 +49,7 @@ export function ProductCardClient({ product }: { product: StoreProduct }) {
         <div className="space-y-4 p-4">
           <div>
             <p className="text-xs font-medium uppercase text-brand-muted">
-              {getCategoryName(product.categorySlug)}
+              {categoryName ?? getCategoryName(product.categorySlug)}
             </p>
             <h3 className="mt-1 text-base font-semibold text-brand-ink">{product.name}</h3>
           </div>

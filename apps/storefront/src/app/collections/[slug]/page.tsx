@@ -6,9 +6,14 @@ import { Container, SectionHeading } from "@bibajilbab/ui/server"
 import { Breadcrumbs } from "@/components/commerce/breadcrumbs"
 import { CatalogFiltersForm } from "@/components/commerce/catalog-filters-form"
 import { ProductGrid } from "@/components/commerce/product-grid"
-import { collections, createPageMetadata, getCollectionBySlug } from "@/lib/catalog"
+import {
+  collections,
+  createPageMetadata,
+  getCategoryLabelMap,
+  getCollectionBySlug,
+} from "@/lib/catalog"
 import { getFilteredProducts, parseCatalogFilters, type SearchParamRecord } from "@/lib/filters"
-import { getStorefrontProducts } from "@/lib/storefront-data"
+import { getStorefrontCategories, getStorefrontProducts } from "@/lib/storefront-data"
 
 type CollectionPageProps = {
   params: Promise<{ slug: string }>
@@ -19,7 +24,7 @@ export function generateStaticParams() {
   return collections.map((collection) => ({ slug: collection.slug }))
 }
 
-export const revalidate = 60
+export const revalidate = 0
 
 export async function generateMetadata({ params }: CollectionPageProps): Promise<Metadata> {
   const { slug } = await params
@@ -46,14 +51,20 @@ export default async function CollectionPage({ params, searchParams }: Collectio
 
   const filters = { ...parseCatalogFilters(await searchParams), collection: collection.slug }
   const products = await getStorefrontProducts({ status: "published" })
+  const categories = await getStorefrontCategories(products)
+  const categoryLabels = getCategoryLabelMap(categories)
   const collectionProducts =
     collection.slug === "nouveautes"
       ? products
       : products.filter((product) => product.collectionSlugs.includes(collection.slug))
-  const filteredProducts = getFilteredProducts(collectionProducts, {
-    ...filters,
-    collection: collection.slug === "nouveautes" ? "" : collection.slug,
-  })
+  const filteredProducts = getFilteredProducts(
+    collectionProducts,
+    {
+      ...filters,
+      collection: collection.slug === "nouveautes" ? "" : collection.slug,
+    },
+    categoryLabels,
+  )
   const sizeOptions = Array.from(
     new Map(
       products
@@ -87,6 +98,7 @@ export default async function CollectionPage({ params, searchParams }: Collectio
             filters={filters}
             pathname={`/collections/${collection.slug}`}
             resetHref={`/collections/${collection.slug}`}
+            categories={categories}
             lockCollection={collection.slug}
             sizeOptions={sizeOptions}
             colorOptions={colorOptions}
@@ -96,7 +108,7 @@ export default async function CollectionPage({ params, searchParams }: Collectio
           {filteredProducts.length} produit(s)
         </p>
         <div className="mt-6">
-          <ProductGrid products={filteredProducts} />
+          <ProductGrid products={filteredProducts} categoryLabels={categoryLabels} />
         </div>
       </Container>
     </main>

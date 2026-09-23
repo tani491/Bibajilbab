@@ -4,8 +4,8 @@ import { Container, SectionHeading, buttonStyles } from "@bibajilbab/ui/server"
 
 import { CatalogFiltersForm } from "@/components/commerce/catalog-filters-form"
 import { ProductGrid } from "@/components/commerce/product-grid"
-import { createPageMetadata } from "@/lib/catalog"
-import { getStorefrontProducts } from "@/lib/storefront-data"
+import { createPageMetadata, getCategoryLabelMap } from "@/lib/catalog"
+import { getStorefrontCategories, getStorefrontProducts } from "@/lib/storefront-data"
 import {
   buildCatalogUrl,
   getFilteredProducts,
@@ -20,7 +20,7 @@ export const metadata = createPageMetadata({
   path: "/catalogue",
 })
 
-export const revalidate = 60
+export const revalidate = 0
 
 export default async function CataloguePage({
   searchParams,
@@ -29,7 +29,9 @@ export default async function CataloguePage({
 }) {
   const filters = parseCatalogFilters(await searchParams)
   const allProducts = await getStorefrontProducts({ status: "published" })
-  const filteredProducts = getFilteredProducts(allProducts, filters)
+  const categories = await getStorefrontCategories(allProducts)
+  const categoryLabels = getCategoryLabelMap(categories)
+  const filteredProducts = getFilteredProducts(allProducts, filters, categoryLabels)
   const paginated = paginateProducts(filteredProducts, filters.page, 8)
   const sizeOptions = Array.from(
     new Map(
@@ -59,6 +61,7 @@ export default async function CataloguePage({
             filters={filters}
             pathname="/catalogue"
             resetHref="/catalogue"
+            categories={categories}
             sizeOptions={sizeOptions}
             colorOptions={colorOptions}
           />
@@ -75,7 +78,7 @@ export default async function CataloguePage({
           </Link>
         </div>
         <div className="mt-6">
-          <ProductGrid products={paginated.items} />
+          <ProductGrid products={paginated.items} categoryLabels={categoryLabels} />
         </div>
         {paginated.hasNextPage ? (
           <div className="mt-8 flex justify-center">

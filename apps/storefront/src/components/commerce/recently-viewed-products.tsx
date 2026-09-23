@@ -8,9 +8,11 @@ import { useStorefrontState } from "./store-provider"
 export function RecentlyViewedProducts({
   products,
   currentSlug,
+  categoryLabels = {},
 }: {
   products: StoreProduct[]
   currentSlug: string
+  categoryLabels?: Record<string, string>
 }) {
   const { recentlyViewed } = useStorefrontState()
   const viewedProducts = recentlyViewed
@@ -26,7 +28,11 @@ export function RecentlyViewedProducts({
   return (
     <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
       {viewedProducts.map((product) => (
-        <ProductCardClient key={product.id} product={product} />
+        <ProductCardClient
+          key={product.id}
+          product={product}
+          categoryName={categoryLabels[product.categorySlug]}
+        />
       ))}
     </div>
   )

@@ -126,6 +126,7 @@ async function requireActionSession(allowedRoles: Parameters<typeof requireAdmin
 }
 
 function revalidatePublicStorefrontCache() {
+  revalidateTag("storefront-categories", "max")
   revalidateTag("storefront-products", "max")
   revalidateTag("storefront-homepage", "max")
   revalidateTag("storefront-settings", "max")
@@ -161,10 +162,7 @@ export async function saveProductAction(
       productPayload.badge = FieldValue.delete()
     }
 
-    await db
-      .collection("products")
-      .doc(documentId)
-      .set(productPayload, { merge: true })
+    await db.collection("products").doc(documentId).set(productPayload, { merge: true })
 
     if (hero.enabled) {
       const heroDoc = await db.collection("homepageSections").doc("main-hero").get()
@@ -490,6 +488,9 @@ export async function saveCategoryAction(
       documentId,
     })
     revalidatePath("/categories")
+    revalidatePath("/")
+    revalidatePath("/catalogue")
+    revalidatePath("/recherche")
     revalidatePath("/categories/[slug]", "page")
     revalidatePublicStorefrontCache()
 
@@ -574,6 +575,8 @@ export async function deleteCategoryAction(
     revalidatePath("/categories")
     revalidatePath("/categories/[slug]", "page")
     revalidatePath("/")
+    revalidatePath("/catalogue")
+    revalidatePath("/recherche")
     revalidatePublicStorefrontCache()
 
     return ok("Catégorie supprimée.")
