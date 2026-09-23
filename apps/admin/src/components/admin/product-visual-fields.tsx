@@ -135,6 +135,30 @@ function imageFromUpload(upload: UploadResult, alt: string, position: number): E
   }
 }
 
+async function uploadSingleFile(file: File): Promise<UploadResult> {
+  const body = new FormData()
+  body.set("folder", "bibajilbab/produits")
+  body.append("files", file)
+
+  const response = await fetch("/api/cloudinary/upload", {
+    method: "POST",
+    body,
+  })
+  const payload: unknown = await response.json()
+
+  if (!response.ok) {
+    const message =
+      payload && typeof payload === "object" ? (payload as { error?: unknown }).error : null
+    throw new Error(typeof message === "string" ? message : "Téléversement refusé.")
+  }
+
+  if (!isUploadResponse(payload) || !payload.uploads[0]?.secureUrl) {
+    throw new Error("Réponse de téléversement invalide.")
+  }
+
+  return payload.uploads[0]
+}
+
 function friendlyUploadError(message: string): string {
   return message.toLowerCase().includes("cloudinary")
     ? "Téléversement indisponible. Vérifiez la configuration Cloudinary puis réessayez."
@@ -222,7 +246,8 @@ export function ProductVisualFields({
 
   async function uploadFiles(fileList: FileList | File[]) {
     const files = Array.from(fileList)
-    const availableSlots = maxProductImages - images.length
+    const currentImageCount = images.length
+    const availableSlots = maxProductImages - currentImageCount
 
     if (files.length === 0) {
       return
@@ -231,8 +256,8 @@ export function ProductVisualFields({
     if (files.length > availableSlots) {
       setUploadError(
         availableSlots > 0
-          ? `Ajoutez au maximum ${availableSlots} photo(s) supplémentaire(s).`
-          : "La galerie est limitée à 4 photos.",
+          ? `Vous ne pouvez ajouter que ${availableSlots} photo(s) supplémentaire(s).`
+          : "Vous ne pouvez pas ajouter plus de 4 photos.",
       )
       return
     }
@@ -244,37 +269,19 @@ export function ProductVisualFields({
       url: "",
       previewUrl: URL.createObjectURL(file),
       alt: file.name.replace(/\.[^.]+$/u, "") || "Image produit",
-      position: images.length + index,
+      position: currentImageCount + index,
       uploading: true,
     }))
 
     setImages((current) => normalizeImages([...current, ...pendingImages]))
 
     try {
-      const body = new FormData()
-      body.set("folder", "bibajilbab/produits")
-      files.forEach((file) => body.append("files", file))
-
-      const response = await fetch("/api/cloudinary/upload", {
-        method: "POST",
-        body,
-      })
-      const payload: unknown = await response.json()
-
-      if (!response.ok) {
-        const message =
-          payload && typeof payload === "object" ? (payload as { error?: unknown }).error : null
-        throw new Error(typeof message === "string" ? message : "Téléversement refusé.")
-      }
-
-      if (!isUploadResponse(payload)) {
-        throw new Error("Réponse de téléversement invalide.")
-      }
+      const uploads = await Promise.all(files.map((file) => uploadSingleFile(file)))
 
       setImages((current) => {
         const pendingIds = pendingImages.map((image) => image.localId)
         const withoutPending = current.filter((image) => !pendingIds.includes(image.localId))
-        const uploadedImages = payload.uploads.map((upload, index) =>
+        const uploadedImages = uploads.map((upload, index) =>
           imageFromUpload(
             upload,
             pendingImages[index]?.alt ?? "Image produit",

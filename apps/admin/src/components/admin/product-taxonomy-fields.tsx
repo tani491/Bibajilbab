@@ -1,9 +1,5 @@
 "use client"
 
-import { useState } from "react"
-
-import { cn } from "@bibajilbab/ui"
-
 export interface ProductTaxonomyOption {
   id: string
   name: string
@@ -12,16 +8,17 @@ export interface ProductTaxonomyOption {
 }
 
 const defaultCategories: ProductTaxonomyOption[] = [
-  { id: "djilbabs", name: "Djilbabs", slug: "djilbabs" },
-  { id: "khimars", name: "Khimars", slug: "khimars" },
-  { id: "tuniques", name: "Tuniques", slug: "tuniques" },
+  { id: "djilbabs", name: "Jilbab", slug: "djilbabs" },
+  { id: "khimars", name: "Khimar", slug: "khimars" },
+  { id: "tuniques", name: "Tunique", slug: "tuniques" },
+  { id: "ensembles", name: "Ensemble", slug: "ensembles" },
   { id: "priere", name: "Prière", slug: "priere" },
 ]
 
 const defaultCollections: ProductTaxonomyOption[] = [
+  { id: "nouveautes", name: "Nouvelle Collection", slug: "nouveautes", type: "permanent" },
   { id: "tabaski", name: "Tabaski", slug: "tabaski", type: "tabaski" },
-  { id: "korite", name: "Korité", slug: "korite", type: "korite" },
-  { id: "nouveautes", name: "Nouveautés", slug: "nouveautes", type: "permanent" },
+  { id: "vente-flash", name: "Vente Flash", slug: "vente-flash", type: "seasonal" },
 ]
 
 export function ProductTaxonomyFields({
@@ -38,58 +35,40 @@ export function ProductTaxonomyFields({
   const categoryOptions = categories.length > 0 ? categories : defaultCategories
   const collectionOptions = collections.length > 0 ? collections : defaultCollections
   const selectedCategory = defaultCategoryId || categoryOptions[0]?.id || "non-classe"
-  const [selectedCollections, setSelectedCollections] = useState<string[]>(
-    defaultCollectionIds?.length ? defaultCollectionIds : [],
-  )
-
-  function toggleCollection(id: string) {
-    setSelectedCollections((current) =>
-      current.includes(id) ? current.filter((item) => item !== id) : [...current, id],
-    )
-  }
+  const selectedCollection = defaultCollectionIds?.[0] ?? ""
 
   return (
-    <section className="grid gap-4 md:col-span-2">
-      <input type="hidden" name="categoryId" value={selectedCategory} />
-      <input type="hidden" name="collectionIds" value={selectedCollections.join(", ")} />
-
-      <div className="rounded-card border border-brand-border bg-white p-4">
-        <div>
-          <div>
-            <p className="text-sm font-semibold text-brand-ink">Collections</p>
-            <p className="mt-1 text-xs text-brand-muted">Événement ou sélection spéciale.</p>
-          </div>
-        </div>
-        <div className="mt-4 flex flex-wrap gap-2">
-          {collectionOptions.map((collection) => {
-            const selected = selectedCollections.includes(collection.id)
-
-            return (
-              <button
-                key={collection.id}
-                type="button"
-                onClick={() => toggleCollection(collection.id)}
-                className={cn(
-                  "min-h-10 rounded-card border px-3 text-sm font-medium transition focus-visible:outline-none focus-visible:shadow-focus",
-                  selected
-                    ? "border-brand-plum bg-brand-plum text-white"
-                    : "border-brand-border bg-white text-brand-ink hover:border-brand-plum",
-                )}
-              >
-                {collection.name}
-              </button>
-            )
-          })}
-        </div>
-        <p className="mt-3 text-xs text-brand-muted">
-          {selectedCollections.length > 0
-            ? selectedCollections
-                .map((id) => collectionOptions.find((option) => option.id === id)?.name)
-                .filter((name): name is string => Boolean(name))
-                .join(", ")
-            : "Aucune collection sélectionnée."}
-        </p>
-      </div>
+    <section className="grid gap-4 rounded-card border border-brand-border bg-white p-4 md:col-span-2 md:grid-cols-2">
+      <label className="text-sm font-medium text-brand-ink">
+        <span className="mb-2 block">Catégorie</span>
+        <select
+          name="categoryId"
+          defaultValue={selectedCategory}
+          required
+          className="h-11 w-full rounded-card border border-brand-border bg-white px-3 text-sm outline-none transition focus:border-brand-plum focus:shadow-focus"
+        >
+          {categoryOptions.map((category) => (
+            <option key={category.id} value={category.id}>
+              {category.name}
+            </option>
+          ))}
+        </select>
+      </label>
+      <label className="text-sm font-medium text-brand-ink">
+        <span className="mb-2 block">Collection</span>
+        <select
+          name="collectionIds"
+          defaultValue={selectedCollection}
+          className="h-11 w-full rounded-card border border-brand-border bg-white px-3 text-sm outline-none transition focus:border-brand-plum focus:shadow-focus"
+        >
+          <option value="">Aucune collection</option>
+          {collectionOptions.map((collection) => (
+            <option key={collection.id} value={collection.id}>
+              {collection.name}
+            </option>
+          ))}
+        </select>
+      </label>
     </section>
   )
 }

@@ -3,6 +3,7 @@ import { z } from "zod"
 import {
   categorySchema,
   collectionSchema,
+  documentIdSchema,
   faqSchema,
   homepageSectionSchema,
   mediaSchema,
@@ -311,28 +312,56 @@ export function productHeroFromFormData(formData: FormData) {
 }
 
 export const categoryFormSchema = categorySchema
-  .omit({ createdAt: true, updatedAt: true, image: true, seo: true })
+  .omit({ createdAt: true, updatedAt: true, image: true, seo: true, slug: true, position: true, status: true })
   .extend({
     id: z.string().trim().optional(),
+    slug: optionalStringSchema,
     description: optionalStringSchema,
     imageJson: z.string().trim().optional(),
-    position: nonNegativeIntegerFormSchema,
+    position: nonNegativeIntegerFormSchema.default(0),
+    status: z.enum(["draft", "published", "archived"]).default("published"),
     seoTitle: z.string().trim().max(70).optional(),
     seoDescription: z.string().trim().max(160).optional(),
   })
+  .transform((category) => ({
+    ...category,
+    slug: slugify(category.slug ?? category.name),
+  }))
 
 export const collectionFormSchema = collectionSchema
-  .omit({ createdAt: true, updatedAt: true, image: true, seo: true })
+  .omit({
+    createdAt: true,
+    updatedAt: true,
+    image: true,
+    seo: true,
+    slug: true,
+    type: true,
+    startsAt: true,
+    endsAt: true,
+    position: true,
+    status: true,
+  })
   .extend({
     id: z.string().trim().optional(),
+    slug: optionalStringSchema,
     description: optionalStringSchema,
     imageJson: z.string().trim().optional(),
+    type: z.enum(["permanent", "tabaski", "korite", "seasonal"]).default("permanent"),
     startsAt: optionalDateTimeFormSchema,
     endsAt: optionalDateTimeFormSchema,
-    position: nonNegativeIntegerFormSchema,
+    position: nonNegativeIntegerFormSchema.default(0),
+    status: z.enum(["draft", "published", "archived"]).default("published"),
     seoTitle: z.string().trim().max(70).optional(),
     seoDescription: z.string().trim().max(160).optional(),
   })
+  .transform((collection) => ({
+    ...collection,
+    slug: slugify(collection.slug ?? collection.name),
+  }))
+
+export const taxonomyDeleteSchema = z.object({
+  id: documentIdSchema,
+})
 
 export const mediaFormSchema = mediaSchema
   .omit({ createdAt: true, updatedAt: true, cloudinaryPublicId: true })

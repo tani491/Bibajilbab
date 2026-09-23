@@ -33,6 +33,7 @@ export interface AdminCategoryRow {
   id: string
   name: string
   slug: string
+  description?: string | undefined
   status: "draft" | "published" | "archived"
   position: number
 }
@@ -398,6 +399,7 @@ export async function listCategories(): Promise<AdminCategoryRow[]> {
     const item = toPlain<{
       name?: string
       slug?: string
+      description?: string
       status?: AdminCategoryRow["status"]
       position?: number
     }>(doc)
@@ -406,6 +408,7 @@ export async function listCategories(): Promise<AdminCategoryRow[]> {
       id: item.id,
       name: item.name ?? "Catégorie",
       slug: item.slug ?? item.id,
+      description: item.description,
       status: item.status ?? "draft",
       position: item.position ?? 0,
     }
@@ -423,6 +426,7 @@ export async function listCollections(): Promise<AdminCollectionRow[]> {
     const item = toPlain<{
       name?: string
       slug?: string
+      description?: string
       status?: AdminCollectionRow["status"]
       position?: number
       type?: AdminCollectionRow["type"]
@@ -434,6 +438,7 @@ export async function listCollections(): Promise<AdminCollectionRow[]> {
       id: item.id,
       name: item.name ?? "Collection",
       slug: item.slug ?? item.id,
+      description: item.description,
       status: item.status ?? "draft",
       position: item.position ?? 0,
       type: item.type ?? "permanent",

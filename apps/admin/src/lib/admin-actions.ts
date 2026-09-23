@@ -22,6 +22,7 @@ import {
   productHeroFromFormData,
   productFromFormData,
   siteSettingsFormSchema,
+  taxonomyDeleteSchema,
   testimonialDeleteSchema,
   testimonialFormSchema,
   testimonialPublicationSchema,
@@ -153,6 +154,8 @@ export async function saveProductAction(
       updatedAt: now,
     })
 
+    productPayload.category = product.categoryId
+    productPayload.collection = product.collectionIds[0] ?? FieldValue.delete()
     productPayload.oldPrice = FieldValue.delete()
     if (!product.badge) {
       productPayload.badge = FieldValue.delete()
@@ -406,7 +409,9 @@ export async function importProductsCsvAction(
           price,
           currency: "XOF",
           categoryId: String(row.categoryId ?? "non-classe"),
+          category: String(row.categoryId ?? "non-classe"),
           collectionIds: [],
+          collection: "",
           tags: [],
           images: [imageUrl],
           sizes: [],
@@ -454,25 +459,26 @@ export async function saveCategoryAction(
     const parsed = categoryFormSchema.parse(Object.fromEntries(formData))
     const db = await ensureConfiguredDb()
     const documentId = parsed.id || parsed.slug
+    const { imageJson, seoTitle, seoDescription, ...category } = parsed
     await db
       .collection("categories")
       .doc(documentId)
       .set(
-        {
-          ...parsed,
+        withoutUndefined({
+          ...category,
           id: documentId,
-          image: parseOptionalJson(parsed.imageJson),
+          image: parseOptionalJson(imageJson),
           seo:
-            parsed.seoTitle || parsed.seoDescription
+            seoTitle || seoDescription
               ? {
-                  metaTitle: parsed.seoTitle || parsed.name,
-                  metaDescription: parsed.seoDescription || parsed.description || parsed.name,
+                  metaTitle: seoTitle || parsed.name,
+                  metaDescription: seoDescription || parsed.description || parsed.name,
                   noIndex: parsed.status !== "published",
                 }
               : undefined,
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
-        },
+        }),
         { merge: true },
       )
     await writeAuditLog({
@@ -503,25 +509,26 @@ export async function saveCollectionAction(
     const parsed = collectionFormSchema.parse(Object.fromEntries(formData))
     const db = await ensureConfiguredDb()
     const documentId = parsed.id || parsed.slug
+    const { imageJson, seoTitle, seoDescription, ...collection } = parsed
     await db
       .collection("collections")
       .doc(documentId)
       .set(
-        {
-          ...parsed,
+        withoutUndefined({
+          ...collection,
           id: documentId,
-          image: parseOptionalJson(parsed.imageJson),
+          image: parseOptionalJson(imageJson),
           seo:
-            parsed.seoTitle || parsed.seoDescription
+            seoTitle || seoDescription
               ? {
-                  metaTitle: parsed.seoTitle || parsed.name,
-                  metaDescription: parsed.seoDescription || parsed.description || parsed.name,
+                  metaTitle: seoTitle || parsed.name,
+                  metaDescription: seoDescription || parsed.description || parsed.name,
                   noIndex: parsed.status !== "published",
                 }
               : undefined,
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
-        },
+        }),
         { merge: true },
       )
     await writeAuditLog({
@@ -542,6 +549,67 @@ export async function saveCollectionAction(
     return ok("Collection enregistrée.")
   } catch (error) {
     return fail(error instanceof Error ? error.message : "Collection non enregistrée.")
+  }
+}
+
+export async function deleteCategoryAction(
+  _previousState: ActionState,
+  formData: FormData,
+): Promise<ActionState> {
+  const session = await requireActionSession(["admin", "editor"])
+
+  try {
+    const parsed = taxonomyDeleteSchema.parse(Object.fromEntries(formData))
+    const db = await ensureConfiguredDb()
+
+    await db.collection("categories").doc(parsed.id).delete()
+    await writeAuditLog({
+      actorUid: session.uid,
+      actorEmail: session.email,
+      actorRole: session.role,
+      action: "categories.delete",
+      collection: "categories",
+      documentId: parsed.id,
+    })
+    revalidatePath("/categories")
+    revalidatePath("/categories/[slug]", "page")
+    revalidatePath("/")
+    revalidatePublicStorefrontCache()
+
+    return ok("Catégorie supprimée.")
+  } catch (error) {
+    return fail(error instanceof Error ? error.message : "Catégorie non supprimée.")
+  }
+}
+
+export async function deleteCollectionAction(
+  _previousState: ActionState,
+  formData: FormData,
+): Promise<ActionState> {
+  const session = await requireActionSession(["admin", "editor"])
+
+  try {
+    const parsed = taxonomyDeleteSchema.parse(Object.fromEntries(formData))
+    const db = await ensureConfiguredDb()
+
+    await db.collection("collections").doc(parsed.id).delete()
+    await writeAuditLog({
+      actorUid: session.uid,
+      actorEmail: session.email,
+      actorRole: session.role,
+      action: "collections.delete",
+      collection: "collections",
+      documentId: parsed.id,
+    })
+    revalidatePath("/categories")
+    revalidatePath("/collections")
+    revalidatePath("/collections/[slug]", "page")
+    revalidatePath("/")
+    revalidatePublicStorefrontCache()
+
+    return ok("Collection supprimée.")
+  } catch (error) {
+    return fail(error instanceof Error ? error.message : "Collection non supprimée.")
   }
 }
 

@@ -86,7 +86,7 @@ export const productSchema = z
     images: z
       .array(productImageUrlSchema)
       .min(1, "Ajoutez au moins une image au produit")
-      .max(4),
+      .max(4, "4 photos maximum"),
     sizes: z.array(productSizeSchema).default([]),
     colors: z.array(productColorSchema).default([]),
     variants: z.array(productVariantSchema).default([]),
